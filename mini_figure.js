@@ -11,7 +11,9 @@ const shapes = {
     'left_leg': new Shape_From_File("lego_models/minifigure/left_leg/Untitled Model.obj"),
     'right_arm': new Shape_From_File("lego_models/minifigure/right_arm/Untitled Model.obj"),
     'right_hand': new Shape_From_File("lego_models/minifigure/right_hand/Untitled Model.obj"),
-    'right_leg': new Shape_From_File("lego_models/minifigure/right_leg/Untitled Model.obj")
+    'right_leg': new Shape_From_File("lego_models/minifigure/right_leg/Untitled Model.obj"),
+
+    ball: new defs.Subdivision_Sphere(4) // this will be used to see the joints in action
 }
 
 const phong = new defs.Phong_Shader();
@@ -90,55 +92,129 @@ const materials = {
         texture: new Texture("lego_models/minifigure/right_leg/textures/2/official/color/3816d395.png"),
         color: pantsColor
     }, 
+    plastic: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 0.5, color: color(0.9, 0.5, 0.9, 1) }, // to help see the joints
 }
 
 export const Mini_Figure =
 class Mini_Figure {
-    constructor() {
+    constructor(
+        origin = vec3(0,0,0), //origin point of the character. this is based at the bottom of the minifigure's feet
+        scale = vec3(1,1,1) //scale of the minifigure (should not really need this because minifigures should be the same size)
+    ) {
+        /*
+            Lego MiniFig has 
+            root, X,Y,Z translation, X, Y, Z rotation
+            neck: y rotation
+            right shoulder, left shoulder: X rotation
+            right wrist, left wrist
+            right hip, left hip: X rotation
 
-        let scale = Mat4.scale(1, 1, 1);
-        let origin = Mat4.translation(0, 0, 0);
 
-        
-        const hair_shape = shapes.hair;
-        const hair_transform = Mat4.scale(0.85,0.85,0.85).times(Mat4.translation(0,5.7,0));
-        this.hair_node = new Node("hair", hair_shape, hair_transform);
-        
+            root -> neck
+            root -> shoulders -> wrists
+            root -> hips
+        */
 
-        const head_shape = shapes.head;
-        const head_transform = Mat4.scale(0.7,0.7,0.7).times(Mat4.translation(0, 6.65, 0));
-        this.head_node = new Node("head", head_shape, head_transform);
-        
+        let scaleMat = Mat4.scale(scale[0], scale[1], scale[2]);
+        let originMat = Mat4.translation(origin[0], origin[1] + 3, origin[2]);
+
+
+        //Torso
+        // associated joint is the root
         const body_shape = shapes.body;
         const body_transform = Mat4.scale(1, 1, 1).times(Mat4.translation(0, 2.5, 0));
         this.body_node = new Node("body", body_shape, body_transform);
 
+        const root_location = originMat;
+        this.root = new Arc("root", null, this.body_node, root_location);
+        this.root.set_dof(true, true, true, true, true, true);
+        
+        //Hair
+        const hair_shape = shapes.hair;
+        const hair_transform = Mat4.scale(0.85,0.85,0.85).times(Mat4.translation(0,5.7,0));
+        this.hair_node = new Node("hair", hair_shape, hair_transform);
+        
+        //Head
+        // associated joint is the neck
+        const head_shape = shapes.head;
+        const head_transform = Mat4.scale(0.7,0.7,0.7).times(Mat4.translation(0, 6.65, 0));
+        this.head_node = new Node("head", head_shape, head_transform);
+        
+        const neck_location = originMat.times(Mat4.translation(0,1,0));
+        this.neck = new Arc("neck", this.body_node, this.head_node, neck_location);
+        this.body_node.children_arcs.push(this.neck);
+        this.neck.set_dof(false, true, false, false, false, false); // only rotation in Y
+
+        //Left Arm
+        //associated joint is the left shoulder
         const left_arm_shape = shapes.left_arm;
         const left_arm_transform = Mat4.scale(0.5, 0.5, 0.5).times(Mat4.translation(1.8, 6, 0));
         this.left_arm_node = new Node("left_arm", left_arm_shape, left_arm_transform);
 
+        const left_shoulder_location = originMat.times(Mat4.translation(0.6, 0.3, 0)); 
+        this.left_shoulder = new Arc("left_shoulder", this.body_node, this.left_arm_node, left_shoulder_location);
+        this.body_node.children_arcs.push(this.left_shoulder);
+        this.left_shoulder.set_dof(true, false, false, false, false, false); //X rotation
+
+        //Left Hand
+        //associated joint is the left wrist
         const left_hand_shape = shapes.left_hand;
         const left_hand_transform = Mat4.scale(0.4, 0.4, 0.4).times(Mat4.translation(3.3, 5, 1));
         this.left_hand_node = new Node("left_hand", left_hand_shape, left_hand_transform);
 
+        const left_wrist_location = originMat.times(Mat4.translation(1.2, -0.7, 0));
+        this.left_wrist = new Arc("left_wrist", this.left_arm_node, this.left_hand_node, left_wrist_location);
+        this.left_arm_node.children_arcs.push(this.left_wrist);
+        this.left_wrist.set_dof(false, false, true, false, false, false); //might need to change?
+
+        //Left Leg
+        //associated joint is the left hip
         const left_leg_shape = shapes.left_leg;
         const left_leg_transform = Mat4.scale(0.6, 0.6, 0.6).times(Mat4.translation(0.75, 1.9, 0));
         this.left_leg_node = new Node("left_leg", left_leg_shape, left_leg_transform);
 
+        const left_hip_location = originMat.times(Mat4.translation(0.6,-1.2,0)); 
+        this.left_hip = new Arc("left_hip", this.body_node, this.left_leg_node, left_hip_location);
+        this.body_node.children_arcs.push(this.left_hip);
+        this.left_hip.set_dof(true, false, false, false, false, false); //X rotation
+
+        //Right Arm
+        //associated join is the right shoulder
         const right_arm_shape = shapes.right_arm;
         const right_arm_transform = Mat4.scale(0.5, 0.5, 0.5).times(Mat4.translation(-1.8, 6, 0));
         this.right_arm_node = new Node("right_arm", right_arm_shape, right_arm_transform);
 
+        const right_shoulder_location = originMat.times(Mat4.translation(-0.6, 0.3, 0));
+        this.right_shoulder = new Arc("right_shoulder", this.body_node, this.right_arm_node, right_shoulder_location);
+        this.body_node.children_arcs.push(this.right_shoulder);
+        this.right_shoulder.set_dof(true, false, false, false, false, false); //X rotation
+
+        //Right Hand
+        //associated joint is the right wrist
         const right_hand_shape = shapes.right_hand;
         const right_hand_transform = Mat4.scale(0.4, 0.4, 0.4).times(Mat4.translation(-3.3, 5, 1));
         this.right_hand_node = new Node("right_hand", right_hand_shape, right_hand_transform);
 
+        const right_wrist_location = originMat.times(Mat4.translation(-1.2, -0.7, 0)); 
+        this.right_wrist = new Arc("right_wrist", this.right_arm_node, this.right_hand_node, right_wrist_location);
+        this.right_arm_node.children_arcs.push(this.right_wrist);
+        this.right_wrist.set_dof(false, false, true, false, false, false); //might need to change?
+
+        //Right Leg
+        //associated joint is the right hip
         const right_leg_shape = shapes.right_leg;
         const right_leg_transform = Mat4.scale(0.6, 0.6, 0.6).times(Mat4.translation(-0.75, 1.9, 0));
         this.right_leg_node = new Node("right_leg", right_leg_shape, right_leg_transform);
+
+        const right_hip_location = originMat.times(Mat4.translation(-0.6,-1.2,0));
+        this.right_hip = new Arc("right_hip", this.body_node, this.right_leg_node, right_hip_location);
+        this.body_node.children_arcs.push(this.right_hip);
+        this.right_hip.set_dof(true, false, false, false, false, false); //X rotation
     }
 
     draw(webgl_manager, uniforms) {
+        //draw body parts:
+        
         this.hair_node.shape.draw(webgl_manager, uniforms, this.hair_node.transform_matrix, materials.hairMat);
         this.head_node.shape.draw(webgl_manager, uniforms, this.head_node.transform_matrix, materials.headMat);
         this.body_node.shape.draw(webgl_manager, uniforms, this.body_node.transform_matrix, materials.bodyMat);
@@ -148,6 +224,18 @@ class Mini_Figure {
         this.right_arm_node.shape.draw(webgl_manager, uniforms, this.right_arm_node.transform_matrix, materials.right_armMat);
         this.right_hand_node.shape.draw(webgl_manager, uniforms, this.right_hand_node.transform_matrix, materials.right_handMat);
         this.right_leg_node.shape.draw(webgl_manager, uniforms, this.right_leg_node.transform_matrix, materials.right_legMat);
+        
+        //draw joints to help visualize:
+        /*
+        shapes.ball.draw(webgl_manager, uniforms, this.root.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.neck.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.left_shoulder.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.left_wrist.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.left_hip.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.right_shoulder.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.right_wrist.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        shapes.ball.draw(webgl_manager, uniforms, this.right_hip.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
+        */
     }
 }
 
@@ -171,17 +259,28 @@ class Arc {
         this.articulation_matrix = Mat4.identity();
         this.end_effector = null;
         this.dof = {
+            //Rotations:
             Rx: false,
             Ry: false,
             Rz: false,
+            //Translations:
+            Tx: false,
+            Ty: false,
+            Tz: false
         }
     }
 
     // Here I only implement rotational DOF
-    set_dof(x, y, z) {
-        this.dof.Rx = x;
-        this.dof.Ry = y;
-        this.dof.Rz = z;
+    set_dof(rx, ry, rz, tx, ty, tz) {
+        //Rotational:
+        this.dof.Rx = rx;
+        this.dof.Ry = ry;
+        this.dof.Rz = rz;
+
+        //Translational:
+        this.dof.Tx = tx;
+        this.dof.Ty = ty;
+        this.dof.Tz = tz;
     }
 
     update_articulation(theta) {
