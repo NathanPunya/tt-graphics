@@ -151,11 +151,62 @@ class Mini_Figure {
     }
 }
 
+
 class Node {
     constructor(name, shape, transform) {
         this.name = name;
         this.shape = shape;
         this.transform_matrix = transform;
+        this.parent_arc = null;
         this.children_arcs = [];
+    }
+}
+
+class Arc {
+    constructor(name, parent, child, location) {
+        this.name = name;
+        this.parent_node = parent;
+        this.child_node = child;
+        this.location_matrix = location;
+        this.articulation_matrix = Mat4.identity();
+        this.end_effector = null;
+        this.dof = {
+            Rx: false,
+            Ry: false,
+            Rz: false,
+        }
+    }
+
+    // Here I only implement rotational DOF
+    set_dof(x, y, z) {
+        this.dof.Rx = x;
+        this.dof.Ry = y;
+        this.dof.Rz = z;
+    }
+
+    update_articulation(theta) {
+        this.articulation_matrix = Mat4.identity();
+        let index = 0;
+        if (this.dof.Rx) {
+            this.articulation_matrix.pre_multiply(Mat4.rotation(theta[index], 1, 0, 0));
+            index += 1;
+        }
+        if (this.dof.Ry) {
+            this.articulation_matrix.pre_multiply(Mat4.rotation(theta[index], 0, 1, 0));
+            index += 1;
+        }
+        if (this.dof.Rz) {
+            this.articulation_matrix.pre_multiply(Mat4.rotation(theta[index], 0, 0, 1));
+        }
+    }
+
+}
+
+class End_Effector {
+    constructor(name, parent, local_position) {
+        this.name = name;
+        this.parent = parent;
+        this.local_position = local_position;
+        this.global_position = null;
     }
 }
