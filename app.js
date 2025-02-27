@@ -66,7 +66,7 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10,10,10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms,greenBasePlate_transform, this.materials.lego);
 
-    this.mini_fig.draw(caller, this.uniforms, this.materials.lego);
+    this.mini_fig.draw(caller, this.uniforms);
   }
 
   render_controls() {

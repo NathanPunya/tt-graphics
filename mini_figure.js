@@ -13,6 +13,76 @@ const shapes = {
     'right_leg': new Shape_From_File("lego_models/minifigure/right_leg/Untitled Model.obj")
 }
 
+const phong = new defs.Phong_Shader();
+const texturedPhong = new defs.Textured_Phong();
+const bumpmap = new defs.Fake_Bump_Map(1);
+const legoShader = new defs.Decal_Phong();
+
+const pantsColor = color(0.11953842797895521, 0.171441100722554, 0.26225065751888765, 1)
+const jacketColor = color(0.005181516700061659, 0.005181516700061659, 0.005181516700061659, 1)
+const skinColor = color(0.9386857284565036, 0.5711248294565854, 0.009134058699157796,1)
+
+const materials = {
+    headMat: { shader: legoShader, 
+        ambient: 1, 
+        diffusivity: 1, 
+        specularity: 1, 
+        texture: new Texture("lego_models/minifigure/head/textures/1/official/decoration/3626d1304.png"),
+        color: color(0,0,0,1)
+    },
+    bodyMat: {shader: legoShader,
+        ambient: 1,
+        diffusivity: 1,
+        specularity: 1,
+        texture: new Texture("lego_models/minifigure/body/textures/2/official/color/3814d1062.png"),
+        color: jacketColor
+    },
+    left_armMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity:1,
+        specularity:1,
+        color: jacketColor
+    },
+    left_handMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity:1,
+        specularity:1,
+        color: skinColor
+    },
+    left_legMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity: 1,
+        specularity: 1,
+        texture: new Texture("lego_models/minifigure/left_leg/textures/2/official/color/3817d395.png"),
+        color: pantsColor
+    },
+    right_armMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity:1,
+        specularity:1,
+        color: jacketColor
+    },
+    right_handMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity:1,
+        specularity:1,
+        color: skinColor
+    },
+    right_legMat:{
+        shader: legoShader,
+        ambient: 1,
+        diffusivity: 1,
+        specularity: 1,
+        texture: new Texture("lego_models/minifigure/right_leg/textures/2/official/color/3816d395.png"),
+        color: pantsColor
+    }, 
+}
+
 export const Mini_Figure =
 class Mini_Figure {
     constructor() {
@@ -53,15 +123,15 @@ class Mini_Figure {
         this.right_leg_node = new Node("right_leg", right_leg_shape, right_leg_transform);
     }
 
-    draw(webgl_manager, uniforms, material) {
-        this.head_node.shape.draw(webgl_manager, uniforms, this.head_node.transform_matrix, { ...material, color: color(0, 0, 1, 1)});
-        this.body_node.shape.draw(webgl_manager, uniforms, this.body_node.transform_matrix, { ...material, color: color(0, 1, 0, 1)});
-        this.left_arm_node.shape.draw(webgl_manager, uniforms, this.left_arm_node.transform_matrix, { ...material, color: color(0, 1, 1, 1)});
-        this.left_hand_node.shape.draw(webgl_manager, uniforms, this.left_hand_node.transform_matrix, { ...material, color: color(1, 0, 0, 1)});
-        this.left_leg_node.shape.draw(webgl_manager, uniforms, this.left_leg_node.transform_matrix, { ...material, color: color(1, 0, 1, 1)});
-        this.right_arm_node.shape.draw(webgl_manager, uniforms, this.right_arm_node.transform_matrix, { ...material, color: color(1, 1, 0, 1)});
-        this.right_hand_node.shape.draw(webgl_manager, uniforms, this.right_hand_node.transform_matrix, { ...material, color: color(1, 0.5, 0, 1)});
-        this.right_leg_node.shape.draw(webgl_manager, uniforms, this.right_leg_node.transform_matrix, { ...material, color: color(0.5, 0, 1, 1)});
+    draw(webgl_manager, uniforms) {
+        this.head_node.shape.draw(webgl_manager, uniforms, this.head_node.transform_matrix, materials.headMat);
+        this.body_node.shape.draw(webgl_manager, uniforms, this.body_node.transform_matrix, materials.bodyMat);
+        this.left_arm_node.shape.draw(webgl_manager, uniforms, this.left_arm_node.transform_matrix, materials.left_armMat);
+        this.left_hand_node.shape.draw(webgl_manager, uniforms, this.left_hand_node.transform_matrix, materials.left_handMat);
+        this.left_leg_node.shape.draw(webgl_manager, uniforms, this.left_leg_node.transform_matrix, materials.left_legMat);
+        this.right_arm_node.shape.draw(webgl_manager, uniforms, this.right_arm_node.transform_matrix, materials.right_armMat);
+        this.right_hand_node.shape.draw(webgl_manager, uniforms, this.right_hand_node.transform_matrix, materials.right_handMat);
+        this.right_leg_node.shape.draw(webgl_manager, uniforms, this.right_leg_node.transform_matrix, materials.right_legMat);
     }
 }
 
