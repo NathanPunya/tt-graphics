@@ -2,6 +2,8 @@ import { tiny, defs } from "./examples/common.js";
 import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
+import { Mini_Figure } from './mini_figure.js';
+
 export const external = defs.external =
   class external extends Component {
     init() {
@@ -19,6 +21,8 @@ export const external = defs.external =
         lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color( 0.007499032040460618, 0.20507873637973145, 0.019382360952473074,1)}
       };
       // Todo: Cool stuff starts here :D
+
+      this.mini_fig = new Mini_Figure();
       
     }
 
@@ -61,6 +65,8 @@ export class main extends external {
 
     const greenBasePlate_transform = Mat4.scale(10,10,10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms,greenBasePlate_transform, this.materials.lego);
+
+    this.mini_fig.draw(caller, this.uniforms, this.materials.lego);
   }
 
   render_controls() {
