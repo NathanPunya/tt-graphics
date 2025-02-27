@@ -22,7 +22,7 @@ const legoShader = new defs.Decal_Phong();
 const pantsColor = color(0.11953842797895521, 0.171441100722554, 0.26225065751888765, 1);
 const jacketColor = color(0.005181516700061659, 0.005181516700061659, 0.005181516700061659, 1);
 const skinColor = color(0.9386857284565036, 0.5711248294565854, 0.009134058699157796,1);
-const hairColor = color(0.18, 0.1, 0,1);
+const hairColor = color(0.17, 0.1, 0,1);
 
 const materials = {
     hairMat:{
@@ -99,12 +99,14 @@ class Mini_Figure {
         let scale = Mat4.scale(1, 1, 1);
         let origin = Mat4.translation(0, 0, 0);
 
+        
         const hair_shape = shapes.hair;
-        const hair_transform = Mat4.scale(1.15,1.15,1.15).times(Mat4.translation(0,4.6,0));
+        const hair_transform = Mat4.scale(0.85,0.85,0.85).times(Mat4.translation(0,5.7,0));
         this.hair_node = new Node("hair", hair_shape, hair_transform);
+        
 
         const head_shape = shapes.head;
-        const head_transform = Mat4.scale(0.98,0.98,0.98).times(Mat4.translation(0, 5.1, 0));
+        const head_transform = Mat4.scale(0.7,0.7,0.7).times(Mat4.translation(0, 6.65, 0));
         this.head_node = new Node("head", head_shape, head_transform);
         
         const body_shape = shapes.body;
