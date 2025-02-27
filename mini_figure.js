@@ -36,7 +36,7 @@ const materials = {
         ambient: 1, 
         diffusivity: 1, 
         specularity: 1, 
-        texture: new Texture("lego_models/minifigure/head/textures/2/official/color/3626d220.png"),
+        texture: new Texture("lego_models/minifigure/head/textures/2/official/color/3626d1304.png"),
         color: skinColor
     },
     bodyMat: {shader: legoShader,
