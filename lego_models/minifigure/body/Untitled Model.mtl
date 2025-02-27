@@ -1,0 +1,21 @@
+# www.mecabricks.com
+newmtl MB_135_official_6627
+Ka 1.0 1.0 1.0
+Kd 0.11953842797895521 0.171441100722554 0.26225065751888765
+map_Kd textures/2/official/color/3815d395.png
+Ks 0.0 0.0 0.0
+Ni 1.5
+d 1
+illum 2
+
+
+newmtl MB_26_official_3362
+Ka 1.0 1.0 1.0
+Kd 0.005181516700061659 0.005181516700061659 0.005181516700061659
+map_Kd textures/2/official/color/3814d1062.png
+Ks 0.0 0.0 0.0
+Ni 1.5
+d 1
+illum 2
+
+
