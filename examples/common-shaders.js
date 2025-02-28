@@ -265,9 +265,10 @@ const Fake_Bump_Map = defs.Fake_Bump_Map =
   };
 
 
+  //Shader we adjusted so that can have colors and textures on a shape 
+  // (Copy of Textured_Phong with some minor adjustments to incorporate a color too)
   const Decal_Phong = defs.Decal_Phong = 
   class Decal_Phong extends Phong_Shader {
-    // ——————————————— VERTEX SHADER ———————————————
     vertex_glsl_code() {
       // Same as Textured_Phong:
       return this.shared_glsl_code() + `
@@ -287,7 +288,6 @@ const Fake_Bump_Map = defs.Fake_Bump_Map =
       `;
     }
 
-    // ——————————————— FRAGMENT SHADER ———————————————
     fragment_glsl_code() {
       // We will blend shape_color and texture color using the texture's alpha,
       // so that the shape color is visible behind transparent parts.
@@ -299,30 +299,15 @@ const Fake_Bump_Map = defs.Fake_Bump_Map =
           // Sample the texture color (includes alpha if PNG has transparency)
           vec4 tex_color = texture2D(texture, f_tex_coord);
 
-          // "Discard" can be useful if you want fully transparent pixels
-          // to be skipped entirely, but for a "decal" effect you generally
-          // do NOT discard. Instead, just blend:
-          // if (tex_color.a < 0.01) discard;
-
-          // 1) Combine base (shape_color) and the texture color using alpha:
-          //    shape_color = material.color (passed down)
-          //    tex_color = RGBA from the texture
-          //
-          //    We'll interpret alpha as "how much texture shows up".
-          //    final_color = mix( shape_color, tex_color, tex_color.a ).
           vec3 base_rgb      = shape_color.xyz;
           vec3 decal_rgb     = tex_color.xyz;
           float decal_alpha  = tex_color.a;    // 0 -> fully shape, 1 -> fully decal
 
-          // Blend them (0 = shape only, 1 = texture only)
           vec3 blended_color = mix(base_rgb, decal_rgb, decal_alpha);
 
-          // 2) Apply ambient *and* then the Phong lighting model:
           vec3 lit_color = blended_color * ambient;
           lit_color += phong_model_lights(normalize(N), vertex_worldspace);
 
-          // 3) Final alpha: If you want the object fully opaque, set 1.0.
-          //    If you want partial transparency to background, keep decal_alpha.
           float final_alpha = 1.0;  // or shape_color.w, or decal_alpha, etc.
 
           gl_FragColor = vec4(lit_color, final_alpha);
@@ -330,7 +315,6 @@ const Fake_Bump_Map = defs.Fake_Bump_Map =
       `;
     }
 
-    // ——————————————— GPU UPDATES ———————————————
     update_GPU(context, gpu_addresses, uniforms, model_transform, material) {
       // This part is the same as Textured_Phong, except we named our class Decal_Phong.
       super.update_GPU(context, gpu_addresses, uniforms, model_transform, material);
