@@ -15,70 +15,105 @@ export const external = defs.external =
       };
 
       const phong = new defs.Phong_Shader();
-      const tex_phong = new defs.Textured_Phong();
       this.materials = {
         plastic: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 0.5, color: color(0.9, 0.5, 0.9, 1) },
         metal: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 1, color: color(0.1, 0.9, 0.1, 1) },
-        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color( 0.007499032040460618, 0.20507873637973145, 0.019382360952473074,1)}
+        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color(0.007, 0.205, 0.019, 1) }
       };
-      // Todo: Cool stuff starts here :D
 
       this.mini_fig = new Mini_Figure();
-      this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5,5,5));
-      
+      this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5, 5, 5));
+
+      this.uniforms = {
+        model_transform: Mat4.identity(),
+        projection_transform: Mat4.perspective(Math.PI / 4, 1, 1, 100),
+        lights: []
+      };
     }
 
     render_animation(caller) {
       if (!caller.controls) {
         this.animated_children.push(
-          caller.controls = new defs.Movement_Controls({ uniforms: this.uniforms })
+          caller.controls = new Movement_Controls(this) // Uses custom movement controls
         );
-        caller.controls.add_mouse_controls(caller.canvas);
+
         Shader.assign_camera(
-          Mat4.look_at(vec3(5, 8, 15), vec3(0, 5, 0), vec3(0, 1, 0)),
+          Mat4.look_at(vec3(5, 8, 25), vec3(0, 5, 0), vec3(0, 1, 0)),
           this.uniforms
         );
       }
-      //Todo: More cool stuff here :DDD
 
-      //Lighting
+      // Lighting
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, caller.width / caller.height, 1, 100);
       const lightPos = vec4(10, 10, 10, 1);
       this.uniforms.lights = [
         defs.Phong_Shader.light_source(lightPos, color(1, 1, 1, 1), 1e6)
       ];
-
     }
   };
 
+export class Movement_Controls extends Component {
+  constructor(main_instance) {
+    super();
+    this.main = main_instance;
+    this.movement_speed = 0.5; // Adjust movement speed
+    this.key_pressed = {};
+
+    this.setup_key_listeners();
+  }
+
+  setup_key_listeners() {
+    document.addEventListener("keydown", (event) => {
+      this.key_pressed[event.key.toLowerCase()] = true;
+    });
+
+    document.addEventListener("keyup", (event) => {
+      this.key_pressed[event.key.toLowerCase()] = false;
+    });
+  }
+
+  handle_movement() {
+    let move = Mat4.identity();
+
+    if (this.key_pressed["i"]) {
+      move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // Move forward
+    }
+    if (this.key_pressed["k"]) {
+      move.post_multiply(Mat4.translation(0, 0, this.movement_speed)); // Move backward
+    }
+    if (this.key_pressed["j"]) {
+      move.post_multiply(Mat4.translation(-this.movement_speed, 0, 0)); // Move left
+    }
+    if (this.key_pressed["l"]) {
+      move.post_multiply(Mat4.translation(this.movement_speed, 0, 0)); // Move right
+    }
+
+    // Apply movement to the Mini Figure's root transformation
+    this.main.mini_fig.rootMat.post_multiply(move);
+  }
+
+  render_animation(caller) {
+    this.handle_movement();
+
+    // Draw Mini Figure with updated root transformation
+    this.main.mini_fig.draw(caller, this.main.uniforms);
+  }
+}
+
 export class main extends external {
+  constructor() {
+    super();
+  }
+
   render_animation(caller) {
     super.render_animation(caller);
 
-    //Todo: AND here
-
-    //Floor
-    const groundColor = color(1, 0.7, 0, 1);
-    /*const floorXf = Mat4.translation(0, 0, 0).times(Mat4.scale(10, 0.01, 10));
-    this.shapes.box.draw(
-      caller, this.uniforms, floorXf,
-      { ...this.materials.plastic, color: groundColor }
-    );*/
-
-    const greenBasePlate_transform = Mat4.scale(10,10,10);
-    this.shapes.greenBasePlate.draw(caller, this.uniforms,greenBasePlate_transform, this.materials.lego);
-
-    this.houseOne.draw(caller,this.uniforms);
+    // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
-  }
-
-  render_controls() {
-    this.control_panel.innerHTML += "IK Scene: Figure-8 Path<br>";
-    this.new_line();
-    this.key_triggered_button("Debug", ["Shift", "D"], () => {
-      console.log("Angles:", this.ikChar.angles);
-    });
-    this.new_line();
+    // Draw environment
+    const greenBasePlate_transform = Mat4.scale(10, 10, 10);
+    this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
+    this.houseOne.draw(caller, this.uniforms);
   }
 }
