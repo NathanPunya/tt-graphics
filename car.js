@@ -3,9 +3,11 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import {Node, Arc} from './mini_figure.js';
+import { BuildableLego, NodeAnimated } from "./build.js";
 
-export class Car{
+export class Car extends BuildableLego{
     constructor(rootLocation = vec3(0, 18, 0), scale = vec3(1,1,1)){
+        super();
         this.shapes = {
             base: new defs.Shape_From_File("lego_models/car_pieces/base/Untitled Model.obj"),
             flatPlate: new defs.Shape_From_File("lego_models/car_pieces/flatPlate/Untitled Model.obj"),
@@ -51,76 +53,67 @@ export class Car{
             }
         }
 
-        this.nodes = [];
 
         const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2])).times(Mat4.scale(3,3,3));
-        this.base_node = new Node("base", this.shapes.base, base_location, this.materials.bodyMat);
+        this.base_node = new NodeAnimated("base", this.shapes.base, base_location, this.materials.bodyMat);
         this.nodes.push(this.base_node);
 
         const base2_location = base_location.times(Mat4.translation(0, 0.45, 0));
-        this.base2_node = new Node("base2", this.shapes.base,base2_location, this.materials.bodyMat);
+        this.base2_node = new NodeAnimated("base2", this.shapes.base,base2_location, this.materials.bodyMat);
         this.nodes.push(this.base2_node);
 
         const front_wheel_connector_location = base_location.times(Mat4.translation(-1.1,-0.40, 0))
                                                             .times(Mat4.scale(0.6,0.6,0.6))
                                                             .times(Mat4.rotation(Math.PI/2, 0, 1, 0));
-        this.front_wheel_connector_node = new Node("front_wheel_connector", this.shapes.wheel_connector, front_wheel_connector_location, {...this.materials.bodyMat, color: white});
+        this.front_wheel_connector_node = new NodeAnimated("front_wheel_connector", this.shapes.wheel_connector, front_wheel_connector_location, {...this.materials.bodyMat, color: white});
         this.nodes.push(this.front_wheel_connector_node);
 
 
         const back_wheel_connector_location = base_location.times(Mat4.translation(1.5, -0.40, 0))
                                                         .times(Mat4.scale(0.6,0.6,0.6)).times(Mat4.rotation(Math.PI/2, 0, 1, 0));
-        this.back_wheel_connector_node = new Node("back_wheel_connector", this.shapes.wheel_connector, back_wheel_connector_location, {...this.materials.bodyMat, color: white});
+        this.back_wheel_connector_node = new NodeAnimated("back_wheel_connector", this.shapes.wheel_connector, back_wheel_connector_location, {...this.materials.bodyMat, color: white});
         this.nodes.push(this.back_wheel_connector_node);
 
 
         const front_left_wheel_location = front_wheel_connector_location.times(Mat4.translation(-1.7, 0, 0)).times(Mat4.scale(0.5,0.5,0.5));
-        this.front_left_wheel_node = new Node("front_left_wheel", this.shapes.wheel, front_left_wheel_location, this.materials.wheelMat);
+        this.front_left_wheel_node = new NodeAnimated("front_left_wheel", this.shapes.wheel, front_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_left_wheel_node);
 
         const front_right_wheel_location = front_wheel_connector_location.times(Mat4.translation(2,0,0)).times(Mat4.scale(0.5,0.5,0.5));
-        this.front_right_wheel_node = new Node("front_right_wheel", this.shapes.wheel, front_right_wheel_location, this.materials.wheelMat);
+        this.front_right_wheel_node = new NodeAnimated("front_right_wheel", this.shapes.wheel, front_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_right_wheel_node);
 
         const back_left_wheel_location = back_wheel_connector_location.times(Mat4.translation(-1.7,0,0)).times(Mat4.scale(0.5,0.5,0.5));
-        this.back_left_wheel_node = new Node("back_left_wheel", this.shapes.wheel, back_left_wheel_location, this.materials.wheelMat);
+        this.back_left_wheel_node = new NodeAnimated("back_left_wheel", this.shapes.wheel, back_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_left_wheel_node);
 
         const back_right_wheel_location = back_wheel_connector_location.times(Mat4.translation(2,0,0)).times(Mat4.scale(0.5,0.5,0.5));
-        this.back_right_wheel_node = new Node("back_right_wheel", this.shapes.wheel, back_right_wheel_location, this.materials.wheelMat);
+        this.back_right_wheel_node = new NodeAnimated("back_right_wheel", this.shapes.wheel, back_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_right_wheel_node);
 
         const flatPlate_location = base2_location.times(Mat4.translation(-1.53, 0.14, 0)).times(Mat4.scale(0.47,0.47,0.47)).times(Mat4.rotation(Math.PI/2, 0, 1, 0));
-        this.flatPlate_node = new Node("flatPlate", this.shapes.flatPlate, flatPlate_location, {...this.materials.bodyMat, color: blue});
+        this.flatPlate_node = new NodeAnimated("flatPlate", this.shapes.flatPlate, flatPlate_location, {...this.materials.bodyMat, color: blue});
         this.nodes.push(this.flatPlate_node);
 
         const windshield_location = base2_location.times(Mat4.translation(-0.66, 0.41, 0)).times(Mat4.scale(0.45, 0.45, 0.45)).times(Mat4.rotation(-Math.PI/2, 0, 1,0));
-        this.windshield_node = new Node("windshield", this.shapes.windshield, windshield_location, {...this.materials.bodyMat, color: red});
+        this.windshield_node = new NodeAnimated("windshield", this.shapes.windshield, windshield_location, {...this.materials.bodyMat, color: red});
         this.nodes.push(this.windshield_node);
 
         const topBack_location = base2_location.times(Mat4.translation(0.78, 0.45, 0)).times(Mat4.scale(0.67,0.67,0.67));
-        this.topBack_node = new Node("topBack", this.shapes.topBack, topBack_location, {...this.materials.bodyMat, color: blue});
+        this.topBack_node = new NodeAnimated("topBack", this.shapes.topBack, topBack_location, {...this.materials.bodyMat, color: blue});
         this.nodes.push(this.topBack_node);
 
         const topBack2_location = topBack_location.times(Mat4.translation(0,0.65,0));
-        this.topBack2_node = new Node("topBack2", this.shapes.topBack, topBack2_location, {...this.materials.bodyMat, color: green});
+        this.topBack2_node = new NodeAnimated("topBack2", this.shapes.topBack, topBack2_location, {...this.materials.bodyMat, color: green});
         this.nodes.push(this.topBack2_node);
 
         /*const front_left_tire_location = front_left_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
-        this.front_left_tire_node = new Node("front_left_tire", this.shapes.tire, front_left_tire_location, this.materials.tireMat);
+        this.front_left_tire_node = new NodeAnimated("front_left_tire", this.shapes.tire, front_left_tire_location, this.materials.tireMat);
         this.nodes.push(this.front_left_tire_node);
 
         const front_right_tire_location = front_right_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
-        this.front_right_tire_node = new Node("front_right_tire", this.shapes.tire, front_right_tire_location, this.materials.tireMat);
+        this.front_right_tire_node = new NodeAnimated("front_right_tire", this.shapes.tire, front_right_tire_location, this.materials.tireMat);
         this.nodes.push(this.front_right_tire_node);*/
         
-    }   
-
-    draw(caller, uniforms){
-        for(let i = 0; i<this.nodes.length; i++){
-            const node = this.nodes[i];
-            node.shape.draw(caller, uniforms, node.transform_matrix, node.material);
-        }
-   
-    }
+    }  
 }
