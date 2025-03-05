@@ -1,4 +1,8 @@
-class HermiteSpline {
+import { tiny, defs } from "./examples/common.js";
+const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
+
+
+export class HermiteSpline {
 
     constructor() {
       this.points = [];
@@ -101,7 +105,7 @@ class HermiteSpline {
      }
   };
 
-  class Curve_Shape extends Shape {
+  export class Curve_Shape extends Shape {
     // curve_function: (t) => vec3
     constructor(curve_function, sample_count, curve_color=color( 1, 0, 0, 1 )) {
       super("position", "normal");

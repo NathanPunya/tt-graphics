@@ -410,7 +410,7 @@ class Mini_Figure {
 }
 
 
-class Node {
+export class Node {
     constructor(name, shape, transform, material) {
         this.name = name;
         this.shape = shape;
@@ -421,7 +421,7 @@ class Node {
     }
 }
 
-class Arc {
+export class Arc {
     constructor(name, parent, child, location) {
         this.name = name;
         this.parent_node = parent;
@@ -474,7 +474,7 @@ class Arc {
 
 }
 
-class End_Effector {
+export class End_Effector {
     constructor(name, parent, local_position) {
         this.name = name;
         this.parent = parent;
