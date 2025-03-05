@@ -14,7 +14,7 @@ export const external = defs.external =
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
         greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
-        car: new Shape_From_File('lego_models/car/car.obj')
+        //car: new Shape_From_File('lego_models/car/car.obj')
       };
 
       const phong = new defs.Phong_Shader();
@@ -27,7 +27,7 @@ export const external = defs.external =
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5, 5, 5));
 
-      this.car = new Car();
+      this.car = new Car(vec3(-3,4,10), vec3(0.7, 0.7, 0.7));
 
       this.uniforms = {
         model_transform: Mat4.identity(),
@@ -66,7 +66,6 @@ class MoveCamera extends Component{
 
     this.setup_key_listeners();
 
-
     this.camera_positions = {
       "1": {eye: vec3(0, 18, 20), at: vec3(0, 18, 0), up: vec3(0, 1, 0)},
       "2": {eye: vec3(0, 18, -20), at:vec3(0, 18, 0), up: vec3(0, 1, 0)},
@@ -74,7 +73,8 @@ class MoveCamera extends Component{
       "4": {eye: vec3(0, 5, 0), at: vec3(0, 18,0), up: vec3(0, 0, 1)},
       "5": {eye: vec3(-20, 18, 0),at: vec3(0, 18,0),up: vec3(0, 1, 0)},
       "6": {eye: vec3(20, 18, 0), at: vec3(0, 18,0), up:vec3(0, 1, 0)},
-      "7": {eye: vec3(15, 8, 20), at: vec3(0, 5, 0), up:vec3(0, 1, 0)}
+      "7": {eye: vec3(15, 8, 20), at: vec3(0, 5, 0), up:vec3(0, 1, 0)},
+      "8": {eye: vec3(0, 5, 30), at: vec3(0, 5, 0), up: vec3(0, 1, 0)}
     }
 
     this.eye = this.camera_positions["1"].eye;
