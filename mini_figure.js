@@ -102,7 +102,7 @@ export const Mini_Figure =
 class Mini_Figure {
     constructor(
         origin = vec3(0, 3, 0), //origin point of the character. this is based at the bottom of the minifigure's feet
-        scale = vec3(1, 1, 1) //scale of the minifigure (should not really need this because minifigures should be the same size)
+        scale = vec3(1, 1, 1), //scale of the minifigure (should not really need this because minifigures should be the same size)
     ) {
         /*
             Lego MiniFig has 
@@ -117,6 +117,7 @@ class Mini_Figure {
             root -> shoulders -> wrists
             root -> hips
         */
+            this.t_sim = 0; 
 
             let scaleMat = Mat4.scale(scale[0], scale[1], scale[2]);
             let originMat = Mat4.translation(origin[0], origin[1], origin[2]);
@@ -130,7 +131,7 @@ class Mini_Figure {
             const body_transform = Mat4.scale(1, 1, 1).times(Mat4.translation(0, -0.5, 0));
             this.body_node = new Node("body", body_shape, body_transform, materials.bodyMat);
     
-            const root_location = originMat;
+            const root_location = originMat; //.times(Mat4.rotation(0, 0, 1, 0));
             this.root = new Arc("root", null, this.body_node, root_location);
             
             //Hair
@@ -163,6 +164,8 @@ class Mini_Figure {
             this.left_shoulder = new Arc("left_shoulder", this.body_node, this.left_arm_node, left_shoulder_location);
             this.body_node.children_arcs.push(this.left_shoulder);
             this.left_shoulder.set_dof(true, false, false, false, false, false); //X rotation
+            this.left_shoulder.update_articulation(-45);
+            // console.log(this.left_shoulder.articulation_matrix);
     
             //Left Hand
             //associated joint is the left wrist
@@ -343,7 +346,8 @@ class Mini_Figure {
             matrix.post_multiply(L.times(A));
             this.matrix_stack.push(matrix.copy());
 
-            shapes.ball.draw(webgl_manager, uniforms, matrix.times(Mat4.scale(0.3, 0.3, 0.3)), materials.plastic);
+            // used to see joints
+            // shapes.ball.draw(webgl_manager, uniforms, matrix.times(Mat4.scale(0.3, 0.3, 0.3)), materials.plastic);
 
             const node = arc.child_node;
             const T = node.transform_matrix;
@@ -390,23 +394,51 @@ class Mini_Figure {
         // shapes.ball.draw(webgl_manager, uniforms, this.right_hip.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
         
     }
+    
+    move_mini_fig(move, dir) {
+        this.rootMat.post_multiply(move);
+        let direction_matrix = Mat4.identity();
+        if(dir == "w") // forward -z
+            direction_matrix = Mat4.rotation(Math.PI, 0, 1, 0);
+        if(dir == "s") // backward +z
+            direction_matrix = Mat4.rotation(0, 0, 1, 0);
+        if(dir == "a") // left -x
+            direction_matrix = Mat4.rotation(3 * Math.PI / 2, 0, 1, 0);
+        if(dir == "d") // right +x
+            direction_matrix = Mat4.rotation(Math.PI / 2, 0, 1, 0);
 
-    move_mini_fig(move) {
-        move_mini_fig_rec(this.root, move);
+        this.root.articulation_matrix = direction_matrix;
+        // if you want a slower walk animation, divide t_sim by a larger #
+        // make sure that you also update value in reset() function
+        let angle = Math.sin(this.t_sim * Math.PI / 20);
+        this.left_shoulder.update_articulation(angle);
+        this.right_shoulder.update_articulation(-angle);
+        this.left_hip.update_articulation(angle);
+        this.right_hip.update_articulation(-angle);
+        this.t_sim += 1;
+        this.t_sim = this.t_sim % 40;
     }
 
-    move_mini_fig_rec(arc, move) {
-        if(arc != null) {
-            console.log(arc.name);
-            
-            let child = arc.child_node;
-            let T = child.transform_matrix;
-
-            child.transform_matrix = T.times(move);
-
-
+    reset() {
+        let angle = Math.sin(this.t_sim * Math.PI / 20);
+        if(angle >= -0.05 && angle <= 0.05) { // reset location
+            this.left_shoulder.update_articulation(0);
+            this.right_shoulder.update_articulation(0);
+            this.left_hip.update_articulation(0);
+            this.right_hip.update_articulation(0);
+            this.t_sim = 0;
+        } else { // ensures smooth movement back to rest position
+            this.left_shoulder.update_articulation(angle);
+            this.right_shoulder.update_articulation(-angle);
+            this.left_hip.update_articulation(angle);
+            this.right_hip.update_articulation(-angle);
+            if(this.t_sim <= 10 || (this.t_sim <= 30 && this.t_sim >= 20))
+                this.t_sim -= 1;
+            else
+                this.t_sim += 1;
         }
     }
+
 }
 
 

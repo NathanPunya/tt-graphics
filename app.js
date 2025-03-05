@@ -7,6 +7,12 @@ import { House } from "./background.js";
 
 export const external = defs.external =
   class external extends Component {
+
+    constructor(){
+      super();
+      this.t_sim = 0; 
+    }
+
     init() {
       this.shapes = {
         box: new defs.Cube(),
@@ -75,21 +81,21 @@ export class Movement_Controls extends Component {
   handle_movement() {
     let move = Mat4.identity();
 
-    if (this.key_pressed["i"]) {
-      move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // Move forward
+    if (this.key_pressed["w"]) {
+      move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // Move forward -z
+      this.main.mini_fig.move_mini_fig(move, "w");
+    } else if (this.key_pressed["s"]) {
+      move.post_multiply(Mat4.translation(0, 0, this.movement_speed)); // Move backward +z
+      this.main.mini_fig.move_mini_fig(move, "s");
+    } else if (this.key_pressed["a"]) {
+      move.post_multiply(Mat4.translation(-this.movement_speed, 0, 0)); // Move left -x
+      this.main.mini_fig.move_mini_fig(move, "a");
+    } else if (this.key_pressed["d"]) {
+      move.post_multiply(Mat4.translation(this.movement_speed, 0, 0)); // Move right +x
+      this.main.mini_fig.move_mini_fig(move, "d");
+    } else {
+      this.main.mini_fig.reset();
     }
-    if (this.key_pressed["k"]) {
-      move.post_multiply(Mat4.translation(0, 0, this.movement_speed)); // Move backward
-    }
-    if (this.key_pressed["j"]) {
-      move.post_multiply(Mat4.translation(-this.movement_speed, 0, 0)); // Move left
-    }
-    if (this.key_pressed["l"]) {
-      move.post_multiply(Mat4.translation(this.movement_speed, 0, 0)); // Move right
-    }
-
-    // Apply movement to the Mini Figure's root transformation
-    this.main.mini_fig.rootMat.post_multiply(move);
   }
 
   render_animation(caller) {
@@ -110,6 +116,14 @@ export class main extends external {
 
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
+
+    this.t_sim += 0.1;
+    // // console.log(this.t_sim);
+    // let angle = Math.sin(this.t_sim);
+    // this.mini_fig.left_shoulder.update_articulation(angle);
+    // this.mini_fig.right_shoulder.update_articulation(-angle);
+    // this.mini_fig.left_hip.update_articulation(angle);
+    // this.mini_fig.right_hip.update_articulation(-angle);
 
     // Draw environment
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
