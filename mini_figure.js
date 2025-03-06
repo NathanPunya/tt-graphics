@@ -283,7 +283,7 @@ class Mini_Figure {
     // build animation
     build() {
         this.root.articulation_matrix = this.get_direction().times(Mat4.rotation(Math.PI / 6, 1, 0, 0));
-        let angle = 0.5 * Math.sin(this.t_sim * Math.PI / 8);
+        let angle = 0.5 * Math.sin(this.t_sim * Math.PI * 2 / 10);
         this.left_shoulder.update_articulation(angle - (Math.PI / 6));
         this.right_shoulder.update_articulation(-angle - (Math.PI / 6));
 
@@ -291,7 +291,7 @@ class Mini_Figure {
         this.right_hip.articulation_matrix = Mat4.rotation(-Math.PI / 6, 1, 0, 0);
 
         this.t_sim += 1;
-        this.t_sim = this.t_sim % 40;
+        this.t_sim = this.t_sim % 10;
     }
 
     // positions mini-fig to rest position
