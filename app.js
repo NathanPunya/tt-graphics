@@ -7,6 +7,7 @@ import { House } from "./background.js";
 import {Car} from './car.js';
 import {HermiteSpline, Curve_Shape} from "./spline.js"
 import { MoveCamera } from "./camera.js";
+import { AnimateBuild } from "./build.js";
 
 export const external = defs.external =
   class external extends Component {
@@ -29,6 +30,8 @@ export const external = defs.external =
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5, 5, 5));
 
       this.car = new Car(vec3(-3,4,10), vec3(0.7, 0.7, 0.7));
+
+      this.animateCar = new AnimateBuild(this.car);
 
       this.uniforms = {
         model_transform: Mat4.identity(),
@@ -122,7 +125,8 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-    this.car.draw(caller, this.uniforms);
+    //this.car.draw(caller, this.uniforms);
+    this.animateCar.drawPieces(caller, this.uniforms);
 
     //this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
   }

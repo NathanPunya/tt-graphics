@@ -53,7 +53,15 @@ export class Car extends BuildableLego{
             }
         }
 
+        /*
+            Node class should store:
 
+            Scaling and rotation of the piece
+            Position of the piece
+
+            Problem is everything is based off of base_location and its scale/rotations/positions
+
+        */
         const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2])).times(Mat4.scale(3,3,3));
         this.base_node = new NodeAnimated("base", this.shapes.base, base_location, this.materials.bodyMat);
         this.nodes.push(this.base_node);
