@@ -117,12 +117,20 @@ class Mini_Figure {
             root -> shoulders -> wrists
             root -> hips
         */
-            this.t_sim = 0; 
+            this.t_sim = 0; // global clock used for animations
+            this.k = 30; // change this to speed up or slow down walk animation
 
             let scaleMat = Mat4.scale(scale[0], scale[1], scale[2]);
             let originMat = Mat4.translation(origin[0], origin[1], origin[2]);
-    
 
+            // direction = [x, z]
+            // 1 -> facing positive axis
+            // 0 -> perpendicular w/ axis
+            // -1 -> facing negative axis
+            // [0, 1] -> facing positive z-axis, perpendicular w/ x-axis
+            // [1 -1] -> facing positive x-axis, negative z-axis
+            this.direction = [0, 1];
+    
             this.rootMat = originMat;
 
             //Torso
@@ -131,8 +139,9 @@ class Mini_Figure {
             const body_transform = Mat4.scale(1, 1, 1).times(Mat4.translation(0, -0.5, 0));
             this.body_node = new Node("body", body_shape, body_transform, materials.bodyMat);
     
-            const root_location = originMat; //.times(Mat4.rotation(0, 0, 1, 0));
+            const root_location = originMat;
             this.root = new Arc("root", null, this.body_node, root_location);
+            this.root.set_dof(true, true, true, true, true, true); // dof in all directions
             
             //Hair
             const hair_shape = shapes.hair;
@@ -152,7 +161,7 @@ class Mini_Figure {
             const neck_location = Mat4.translation(0, 1, 0);
             this.neck = new Arc("neck", this.body_node, this.head_node, neck_location);
             this.body_node.children_arcs.push(this.neck);
-            this.neck.set_dof(false, true, false, false, false, false); // only rotation in Y
+            this.neck.set_dof(false, true, false, false, false, false); // rotation around y
     
             //Left Arm
             //associated joint is the left shoulder
@@ -163,9 +172,7 @@ class Mini_Figure {
             const left_shoulder_location = Mat4.translation(0.75, 0.5, 0);
             this.left_shoulder = new Arc("left_shoulder", this.body_node, this.left_arm_node, left_shoulder_location);
             this.body_node.children_arcs.push(this.left_shoulder);
-            this.left_shoulder.set_dof(true, false, false, false, false, false); //X rotation
-            this.left_shoulder.update_articulation(-45);
-            // console.log(this.left_shoulder.articulation_matrix);
+            this.left_shoulder.set_dof(true, false, false, false, false, false); // rotation around x
     
             //Left Hand
             //associated joint is the left wrist
@@ -176,7 +183,7 @@ class Mini_Figure {
             const left_wrist_location = Mat4.translation(0.55, -1.25, 0.3);
             this.left_wrist = new Arc("left_wrist", this.left_arm_node, this.left_hand_node, left_wrist_location);
             this.left_arm_node.children_arcs.push(this.left_wrist);
-            this.left_wrist.set_dof(false, false, true, false, false, false); //might need to change?
+            this.left_wrist.set_dof(false, false, true, false, false, false); // rotation around z
     
             //Left Leg
             //associated joint is the left hip
@@ -187,7 +194,7 @@ class Mini_Figure {
             const left_hip_location = Mat4.translation(0.4, -1.6, 0); 
             this.left_hip = new Arc("left_hip", this.body_node, this.left_leg_node, left_hip_location);
             this.body_node.children_arcs.push(this.left_hip);
-            this.left_hip.set_dof(true, false, false, false, false, false); //X rotation
+            this.left_hip.set_dof(true, false, false, false, false, false); // rotation around x
     
             //Right Arm
             //associated join is the right shoulder
@@ -199,7 +206,7 @@ class Mini_Figure {
             // const right_shoulder_location = Mat4.identity();
             this.right_shoulder = new Arc("right_shoulder", this.body_node, this.right_arm_node, right_shoulder_location);
             this.body_node.children_arcs.push(this.right_shoulder);
-            this.right_shoulder.set_dof(true, false, false, false, false, false); //X rotation
+            this.right_shoulder.set_dof(true, false, false, false, false, false); // rotation around x
             
             //Right Hand
             //associated joint is the right wrist
@@ -210,7 +217,7 @@ class Mini_Figure {
             const right_wrist_location = Mat4.translation(-0.55, -1.25, 0.3);
             this.right_wrist = new Arc("right_wrist", this.right_arm_node, this.right_hand_node, right_wrist_location);
             this.right_arm_node.children_arcs.push(this.right_wrist);
-            this.right_wrist.set_dof(false, false, true, false, false, false); //might need to change?
+            this.right_wrist.set_dof(false, false, true, false, false, false); // rotation around y
     
             //Right Leg
             //associated joint is the right hip
@@ -221,122 +228,8 @@ class Mini_Figure {
             const right_hip_location = Mat4.translation(-0.4, -1.6, 0);  
             this.right_hip = new Arc("right_hip", this.body_node, this.right_leg_node, right_hip_location);
             this.body_node.children_arcs.push(this.right_hip);
-            this.right_hip.set_dof(true, false, false, false, false, false); //X rotation
+            this.right_hip.set_dof(true, false, false, false, false, false); // rotation around x
 
-       
-        this.dof = 7; //ignore 6 for root?, 1 for neck, 1 for each shoulder, 1 for each wrist, 1 for each leg
-        this.Jacobian = null;
-        this.theta = [0, 0, 0, 0, 0, 0, 0,];
-        /*
-        indexing format:
-        0: neck DOF
-        1: right shoulder
-        2: left shoulder
-        3: right wrist
-        4: left wrist
-        5: right hip
-        6: left hip
-        */
-        this.apply_theta();
-    }
-
-    // mapping from global theta to each joint theta
-    apply_theta() {
-        this.neck.update_articulation(this.theta[0]);
-        this.right_shoulder.update_articulation(this.theta[1]);
-        this.left_shoulder.update_articulation(this.theta[2]);
-        this.right_wrist.update_articulation(this.theta[3]);
-        this.left_wrist.update_articulation(this.theta[4]);
-        this.right_hip.update_articulation(this.theta[5]);
-        this.left_hip.update_articulation(this.theta[6]);
-    }
-
-    calculate_Jacobian() {
-        let J = new Array(3);
-        for (let i = 0; i < 3; i++) {
-            J[i] = new Array(this.dof);
-        }
-
-        const dt = 0.001;
-        const currEndEffectorPos = this.get_end_effector_position();
-
-        for (let i = 0; i < this.dof; i++) {
-            this.theta[i] = this.theta[i] + dt;
-            this.apply_theta();
-
-            let nEndPos = this.get_end_effector_position();
-
-            J[0][i] = (nEndPos[0] - currEndEffectorPos[0]) / dt;
-            J[1][i] = (nEndPos[1] - currEndEffectorPos[1]) / dt;
-            J[2][i] = (nEndPos[2] - currEndEffectorPos[2]) / dt;
-
-            this.theta[i] = this.theta[i] - dt;
-            this.apply_theta();
-        }
-        return J;
-    }
-
-    calculate_delta_theta(J, dx) {
-        const A = math.multiply(math.transpose(J), J);
-        let dy = [dx[0], dx[1], dx[2]];
-        let dxTrans = math.transpose(dy);
-        const b = math.multiply(math.transpose(J),dxTrans);
-        const x = math.lusolve(A, b)
-
-        return x;
-    }
-
-    get_end_effector_position() {
-        // in this example, we only have one end effector.
-        this.matrix_stack = [];
-        this._rec_update(this.root, Mat4.identity());
-        const v = this.end_effector.global_position; // vec4
-        return vec3(v[0], v[1], v[2]);
-    }
-
-    perform_ik(targetPoint, maxIters = 100, tol = 0.01, K = 0.3) {
-
-        let currentPos = this.get_end_effector_position();
-
-        for (let iteration = 0; iteration < maxIters; iteration++) {
-            let dx = (targetPoint.minus(currentPos)).times(K);
-            if (dx.norm() < tol) {
-                break;
-            }
-            let J = this.calculate_Jacobian();
-            let J_plus = math.multiply(math.transpose(J),math.inv(math.multiply(J,math.transpose(J))));
-            let delta_theta = math.multiply(J_plus, [[dx[0]], [dx[1]], [dx[2]]]);
-            for (let i = 0; i < this.theta.length; i++) {
-                this.theta[i] = parseFloat(this.theta[i]) + parseFloat(delta_theta[i]);
-            }
-            this.apply_theta();
-            currentPos.add_by(dx);
-        }
-    
-    }
-
-    _rec_update(arc, matrix) {
-        if (arc !== null) {
-            const L = arc.location_matrix;
-            const A = arc.articulation_matrix;
-            matrix.post_multiply(L.times(A));
-            this.matrix_stack.push(matrix.copy());
-
-            if (arc.end_effector !== null) {
-                arc.end_effector.global_position = matrix.times(arc.end_effector.local_position);
-            }
-
-            const node = arc.child_node;
-            const T = node.transform_matrix;
-            matrix.post_multiply(T);
-
-            matrix = this.matrix_stack.pop();
-            for (const next_arc of node.children_arcs) {
-                this.matrix_stack.push(matrix.copy());
-                this._rec_update(next_arc, matrix);
-                matrix = this.matrix_stack.pop();
-            }
-        }
     }
 
     _rec_draw(arc, matrix, webgl_manager, uniforms) {
@@ -363,81 +256,96 @@ class Mini_Figure {
         }
     }
 
-
     draw(webgl_manager, uniforms) {
         //draw body parts:
-        
         this.matrix_stack = [];
         this._rec_draw(this.root, Mat4.identity(), webgl_manager, uniforms);
-
-        
-        // this.hair_node.shape.draw(webgl_manager, uniforms, this.hair_node.transform_matrix, materials.hairMat);
-        // this.head_node.shape.draw(webgl_manager, uniforms, this.head_node.transform_matrix, materials.headMat);
-        // this.body_node.shape.draw(webgl_manager, uniforms, this.body_node.transform_matrix, materials.bodyMat);
-        // this.left_arm_node.shape.draw(webgl_manager, uniforms, this.left_arm_node.transform_matrix, materials.left_armMat);
-        // this.left_hand_node.shape.draw(webgl_manager, uniforms, this.left_hand_node.transform_matrix, materials.left_handMat);
-        // this.left_leg_node.shape.draw(webgl_manager, uniforms, this.left_leg_node.transform_matrix, materials.left_legMat);
-        // this.right_arm_node.shape.draw(webgl_manager, uniforms, this.right_arm_node.transform_matrix, materials.right_armMat);
-        // this.right_hand_node.shape.draw(webgl_manager, uniforms, this.right_hand_node.transform_matrix, materials.right_handMat);
-        // this.right_leg_node.shape.draw(webgl_manager, uniforms, this.right_leg_node.transform_matrix, materials.right_legMat);
-        
-        //draw joints to help visualize:
-        //this is outdated bcuz of rec_draw()
-        
-        // shapes.ball.draw(webgl_manager, uniforms, this.root.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.neck.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.left_shoulder.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.left_wrist.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.left_hip.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.right_shoulder.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.right_wrist.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        // shapes.ball.draw(webgl_manager, uniforms, this.right_hip.location_matrix.times(Mat4.scale(0.3,0.3,0.3)), materials.plastic);
-        
     }
     
-    move_mini_fig(move, dir) {
+    // moves mini-fig
+    move_mini_fig(move) {
         this.rootMat.post_multiply(move);
-        let direction_matrix = Mat4.identity();
-        if(dir == "w") // forward -z
-            direction_matrix = Mat4.rotation(Math.PI, 0, 1, 0);
-        if(dir == "s") // backward +z
-            direction_matrix = Mat4.rotation(0, 0, 1, 0);
-        if(dir == "a") // left -x
-            direction_matrix = Mat4.rotation(3 * Math.PI / 2, 0, 1, 0);
-        if(dir == "d") // right +x
-            direction_matrix = Mat4.rotation(Math.PI / 2, 0, 1, 0);
+        this.root.articulation_matrix = this.get_direction();
+        this.move_animation();
+    }
 
-        this.root.articulation_matrix = direction_matrix;
-        // if you want a slower walk animation, divide t_sim by a larger #
-        // make sure that you also update value in reset() function
-        let angle = Math.sin(this.t_sim * Math.PI / 20);
+    move_animation() {
+        // if you want a slower walk animation, decrease k (k is in the constructor)
+        let angle = Math.sin(this.t_sim * Math.PI * 2 / this.k);
         this.left_shoulder.update_articulation(angle);
         this.right_shoulder.update_articulation(-angle);
         this.left_hip.update_articulation(angle);
         this.right_hip.update_articulation(-angle);
         this.t_sim += 1;
+        this.t_sim = this.t_sim % this.k;
+    }
+
+    // build animation
+    build() {
+        this.root.articulation_matrix = this.get_direction().times(Mat4.rotation(Math.PI / 6, 1, 0, 0));
+        let angle = 0.5 * Math.sin(this.t_sim * Math.PI / 8);
+        this.left_shoulder.update_articulation(angle - (Math.PI / 6));
+        this.right_shoulder.update_articulation(-angle - (Math.PI / 6));
+
+        this.left_hip.articulation_matrix = Mat4.rotation(-Math.PI / 6, 1, 0, 0);
+        this.right_hip.articulation_matrix = Mat4.rotation(-Math.PI / 6, 1, 0, 0);
+
+        this.t_sim += 1;
         this.t_sim = this.t_sim % 40;
     }
 
+    // positions mini-fig to rest position
     reset() {
-        let angle = Math.sin(this.t_sim * Math.PI / 20);
-        if(angle >= -0.05 && angle <= 0.05) { // reset location
-            this.left_shoulder.update_articulation(0);
-            this.right_shoulder.update_articulation(0);
-            this.left_hip.update_articulation(0);
-            this.right_hip.update_articulation(0);
-            this.t_sim = 0;
-        } else { // ensures smooth movement back to rest position
-            this.left_shoulder.update_articulation(angle);
-            this.right_shoulder.update_articulation(-angle);
-            this.left_hip.update_articulation(angle);
-            this.right_hip.update_articulation(-angle);
-            if(this.t_sim <= 10 || (this.t_sim <= 30 && this.t_sim >= 20))
-                this.t_sim -= 1;
-            else
-                this.t_sim += 1;
-        }
+        this.root.articulation_matrix = this.get_direction();
+        this.left_shoulder.update_articulation(0);
+        this.right_shoulder.update_articulation(0);
+        this.left_hip.update_articulation(0);
+        this.right_hip.update_articulation(0);
+        this.t_sim = 0;
+        // let angle = Math.sin(this.t_sim * Math.PI * 2 / this.k);
+        // if(angle >= -0.05 && angle <= 0.05) { // reset location
+        //     this.root.articulation_matrix = this.get_direction();
+        //     this.left_shoulder.update_articulation(0);
+        //     this.right_shoulder.update_articulation(0);
+        //     this.left_hip.update_articulation(0);
+        //     this.right_hip.update_articulation(0);
+        //     this.t_sim = 0;
+        // } else { // ensures smooth movement back to rest position
+        //     this.left_shoulder.update_articulation(angle);
+        //     this.right_shoulder.update_articulation(-angle);
+        //     this.left_hip.update_articulation(angle);
+        //     this.right_hip.update_articulation(-angle);
+        //     if(this.t_sim <= 0.25*this.k || (this.t_sim <= 0.75*this.k && this.t_sim >= 0.5*this.k))
+        //         this.t_sim -= 1;
+        //     else
+        //         this.t_sim += 1;
+        // }
     }
+
+    // returns direction of mini-fig
+    get_direction() {
+        let direction_matrix = Mat4.identity();
+        
+        if (this.direction[0] === 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(0, 0, 1, 0);
+        else if (this.direction[0] === 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(Math.PI, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] === 0)
+            direction_matrix = Mat4.rotation(Math.PI / 2, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] === 0)
+            direction_matrix = Mat4.rotation(-Math.PI / 2, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(3 * Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(-Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(-3 * Math.PI / 4, 0, 1, 0);
+        
+        return direction_matrix;
+    }
+    
 
 }
 
@@ -473,7 +381,6 @@ class Arc {
         }
     }
 
-    // Here I only implement rotational DOF
     set_dof(rx, ry, rz, tx, ty, tz) {
         //Rotational:
         this.dof.Rx = rx;
@@ -488,29 +395,9 @@ class Arc {
 
     update_articulation(theta) {
         this.articulation_matrix = Mat4.identity();
-        let index = 0;
-
-        //removed indexing since each joint only has one rotational axis
-        if (this.dof.Rx) {
-            this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 1, 0, 0));
-            index += 1;
-        }
-        if (this.dof.Ry) {
-            this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 1, 0));
-            index += 1;
-        }
-        if (this.dof.Rz) {
-            this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 0, 1));
-        }
+        if(this.dof.Rx) { this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 1, 0, 0)); }
+        if(this.dof.Ry) { this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 1, 0)); }
+        if(this.dof.Rz) { this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 0, 1)); }
     }
 
-}
-
-class End_Effector {
-    constructor(name, parent, local_position) {
-        this.name = name;
-        this.parent = parent;
-        this.local_position = local_position;
-        this.global_position = null;
-    }
 }
