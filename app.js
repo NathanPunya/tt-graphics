@@ -16,7 +16,7 @@ export const external = defs.external =
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
         greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
-        //car: new Shape_From_File('lego_models/car/car.obj')
+        car: new Shape_From_File('lego_models/car/car.obj')
       };
 
       const phong = new defs.Phong_Shader();
@@ -128,6 +128,6 @@ export class main extends external {
     //this.car.draw(caller, this.uniforms);
     this.animateCar.drawPieces(caller, this.uniforms);
 
-    //this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
+    this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
   }
 } 
