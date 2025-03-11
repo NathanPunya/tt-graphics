@@ -16,7 +16,7 @@ export const external = defs.external =
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
         greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
-        car: new Shape_From_File('lego_models/car/car.obj')
+        //car: new Shape_From_File('lego_models/car/car.obj')
       };
 
       const phong = new defs.Phong_Shader();
@@ -33,11 +33,15 @@ export const external = defs.external =
 
       this.animateCar = new AnimateBuild(this.car);
 
-      this.uniforms = {
+
+      this.uniforms.model_transform = Mat4.identity();
+      this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
+      this.uniforms.lights = [];
+      /*this.uniforms = {
         model_transform: Mat4.identity(),
         projection_transform: Mat4.perspective(Math.PI / 4, 1, 1, 100),
         lights: []
-      };
+      };*/
 
       this.move_camera = new MoveCamera(this);
     }
@@ -118,6 +122,7 @@ export class main extends external {
   render_animation(caller) {
     super.render_animation(caller);
 
+
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
@@ -127,7 +132,7 @@ export class main extends external {
     this.houseOne.draw(caller, this.uniforms);
     //this.car.draw(caller, this.uniforms);
     this.animateCar.drawPieces(caller, this.uniforms);
-
-    this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
+    
+    //this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
   }
 } 

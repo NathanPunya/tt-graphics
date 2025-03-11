@@ -19,9 +19,9 @@ export class MoveCamera{
         "8": {eye: vec3(0, 5, 30), at: vec3(0, 5, 0), up: vec3(0, 1, 0)}
       }
   
-      this.eye = this.camera_positions["1"].eye;
-      this.at = this.camera_positions["1"].at;
-      this.up = this.camera_positions["1"].up;
+      this.eye = this.camera_positions["8"].eye;
+      this.at = this.camera_positions["8"].at;
+      this.up = this.camera_positions["8"].up;
       
     }
   
