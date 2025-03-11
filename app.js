@@ -28,7 +28,7 @@ export const external = defs.external =
       };
 
       this.mini_fig = new Mini_Figure();
-      this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5, 5, 5));
+      this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
 
       this.uniforms = {
         model_transform: Mat4.identity(),
