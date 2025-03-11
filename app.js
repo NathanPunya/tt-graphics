@@ -38,7 +38,7 @@ export const external = defs.external =
         );
 
         Shader.assign_camera(
-          Mat4.look_at(vec3(5, 8, 25), vec3(0, 5, 0), vec3(0, 1, 0)),
+          Mat4.look_at(vec3(5, 4.5, 25), vec3(0, 5, 0), vec3(0, 1, 0)),
           this.uniforms
         );
       }
@@ -56,7 +56,7 @@ export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.5; // Adjust movement speed
+    this.movement_speed = 0.1; // Adjust movement speed
     this.key_pressed = {};
 
     this.setup_key_listeners();
@@ -75,16 +75,16 @@ export class Movement_Controls extends Component {
   handle_movement() {
     let move = Mat4.identity();
 
-    if (this.key_pressed["i"]) {
+    if (this.key_pressed["w"]) {
       move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // Move forward
     }
-    if (this.key_pressed["k"]) {
+    if (this.key_pressed["s"]) {
       move.post_multiply(Mat4.translation(0, 0, this.movement_speed)); // Move backward
     }
-    if (this.key_pressed["j"]) {
+    if (this.key_pressed["a"]) {
       move.post_multiply(Mat4.translation(-this.movement_speed, 0, 0)); // Move left
     }
-    if (this.key_pressed["l"]) {
+    if (this.key_pressed["d"]) {
       move.post_multiply(Mat4.translation(this.movement_speed, 0, 0)); // Move right
     }
 
