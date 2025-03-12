@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House } from "./background.js";
+import { House, Tree,  Lamppost, Bench} from "./background.js";
 
 export const external = defs.external =
   class external extends Component {
@@ -29,6 +29,9 @@ export const external = defs.external =
 
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
+      this.treeOne = new Tree(vec3(5, .5, -5), vec3(2, 2, 2));
+      this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(1, 1, 1));
+      this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.uniforms = {
         model_transform: Mat4.identity(),
@@ -131,5 +134,8 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
+    this.treeOne.draw(caller, this.uniforms);
+    this.lamppostOne.draw(caller, this.uniforms);
+    this.benchOne.draw(caller, this.uniforms);
   }
 } 
