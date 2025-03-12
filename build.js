@@ -40,7 +40,7 @@ export class BuildableLego{
 }
 
 export class AnimateBuild{
-    constructor(shape){
+    constructor(shape, startPosBoundary){
         this.shape = shape;
 
         this.splines = [];
@@ -48,10 +48,55 @@ export class AnimateBuild{
         this.animationStartTime =-1;
         this.startTimes = [];
 
+        this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
+
         this.generatePath();
     }
 
+    generateStartPosition(allStartPositions, minDist, maxAttempts = 100) 
+    {
+        const minX = this.startPosBoundaries[0];
+        const maxX = this.startPosBoundaries[1];
+        const minZ = this.startPosBoundaries[2];
+        const maxZ = this.startPosBoundaries[3];
+
+        let lastCandidate;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          // randomly pick a candidate position
+          const x = getRandomFloat(minX, maxX);
+          const y = 1;
+          const z = getRandomFloat(minZ, maxZ);
+          const candidate = vec3(x, y, z);
+          // check distance from every existing position
+          let valid = true;
+          for (const existingPos of allStartPositions) {
+            const dx = candidate[0] - existingPos[0];
+            //const dy = candidate[1] - existingPos[1];
+            const dz = candidate[2] - existingPos[2];
+            const dist = Math.sqrt(dx*dx + dz*dz);
+      
+            // if too close, reject and try again
+            if (dist < minDist) {
+              valid = false;
+              break;
+            }
+          }
+      
+          // if it's not overlapping, accept
+          if (valid) {
+            return candidate;
+          }
+        }
+      
+        // if we couldn't find a non-overlapping position, return something or throw an error
+        console.warn("Could not find a non-overlapping position after many attempts!");
+        // fallback: just return the last candidate or null
+        return vec3((minX + maxX)/2, 1, (minZ + maxZ)/2);
+      }
+      
+
     generatePath(){
+        this.allStartPositions = [];
         for(let i = 0; i<this.shape.nodes.length; i++){
             let node = this.shape.nodes[i];
 
@@ -66,10 +111,7 @@ export class AnimateBuild{
             const z = position[2];
 
             const endPos = vec3(x, y, z);
-            const xStart = getRandomFloat(-endPos[0], endPos[0]);
-            const zStart = getRandomFloat(-endPos[2], endPos[2]);
-
-            const startPos = vec3(xStart, 1, zStart);
+            const startPos = this.generateStartPosition(this.allStartPositions, 3, 100);
             node.setStartPos(startPos);
 
             //Add Starting and End point to the spline:
@@ -80,7 +122,7 @@ export class AnimateBuild{
             const variedIndex = getRandomInt(0, 2);
             midpoint[variedIndex]  = Math.min(startPos[variedIndex], endPos[variedIndex]) - 20; //make it curve sort of upwards/sideways in random direction
             
-            const bendFactor = 2.0;
+            const bendFactor = 2.5; //increasing will make the "bend" steeper or more drastic
             let startTan = midpoint.minus(startPos);
             let endTan = midpoint.minus(endPos);
             startTan = startTan.times(bendFactor);
@@ -104,7 +146,7 @@ export class AnimateBuild{
         if(global_t < this.startTimes[index]){
             t_on_line = 0;
         }else{
-            t_on_line = Math.min(5 * timeDiff , 1);
+            t_on_line = Math.min(2 * timeDiff , 1); //scale timeDiff to change speed
         }
         let node = this.shape.nodes[index];
 
