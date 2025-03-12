@@ -32,7 +32,6 @@ export const external = defs.external =
       this.car = new Car(vec3(-3,4,10), vec3(0.7, 0.7, 0.7));
       this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
 
-
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
       this.uniforms.lights = [];
