@@ -3,7 +3,7 @@ import { tiny, defs } from "./examples/common.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Node } from "./mini_figure.js";
-import { getRandomInt } from "./utils.js";
+import { getRandomInt, getRandomFloat} from "./utils.js";
 
 export class NodeAnimated extends Node{
     constructor(name, shape, transform, material, start_transform_matrix){
@@ -66,9 +66,8 @@ export class AnimateBuild{
             const z = position[2];
 
             const endPos = vec3(x, y, z);
-            
-            const xStart = getRandomInt(0, 2 * endPos[0]);
-            const zStart = getRandomInt(0, 2 *endPos[2]);
+            const xStart = getRandomFloat(-endPos[0], endPos[0]);
+            const zStart = getRandomFloat(-endPos[2], endPos[2]);
 
             const startPos = vec3(xStart, 1, zStart);
             node.setStartPos(startPos);
@@ -79,26 +78,23 @@ export class AnimateBuild{
                 midpoint[i] = (startPos[i] + endPos[i])/2;
             }
             const variedIndex = getRandomInt(0, 2);
-            midpoint[variedIndex] *= 2; //make it curve sort of upwards/sideways in random direction
+            midpoint[variedIndex]  = Math.min(startPos[variedIndex], endPos[variedIndex]) - 20; //make it curve sort of upwards/sideways in random direction
             
-            this.splines[i].add_point(startPos[0], startPos[1], startPos[2], startPos[0]+1, startPos[1] + 1, startPos[2] -1);
-            this.splines[i].add_point(midpoint[0], midpoint[1], midpoint[2], midpoint[0] -1, midpoint[1] + 1, midpoint[2] -1);
-            this.splines[i].add_point(endPos[0], endPos[1], endPos[2], endPos[0] + 1, endPos[1] + 1, endPos[2] - 1);
+            const bendFactor = 2.0;
+            let startTan = midpoint.minus(startPos);
+            let endTan = midpoint.minus(endPos);
+            startTan = startTan.times(bendFactor);
+            endTan = endTan.times(bendFactor);
+
+            this.splines[i].add_point(startPos[0], startPos[1], startPos[2], startTan[0], startTan[1], startTan[2]);
+            //this.splines[i].add_point(midpoint[0], midpoint[1], midpoint[2], midpoint[0] -1, midpoint[1] + 1, midpoint[2] -1);
+            this.splines[i].add_point(endPos[0], endPos[1], endPos[2], endTan[0], endTan[1], endTan[2]);
             
             
             //const curves = (t) => this.splines[i].get_position(t);
             //this.curve = new Curve_Shape(curves, 1000, color(1,0,0,1));
 
-        }
-
-        
-
-        // //confirm the transformation:
-        // //Yes it is working, can comment this out
-        // const position_after = this.firstPoint.start_transform_matrix.times(origin)
-        // console.log(position_after);
-
-        
+        }       
     }
 
     getPathTransform(uniforms, index){
@@ -108,9 +104,8 @@ export class AnimateBuild{
         if(global_t < this.startTimes[index]){
             t_on_line = 0;
         }else{
-            t_on_line = Math.min(timeDiff/4 , 1);
+            t_on_line = Math.min(5 * timeDiff , 1);
         }
-        console.log(t_on_line);
         let node = this.shape.nodes[index];
 
         const M = node.transform_matrix;
@@ -129,7 +124,7 @@ export class AnimateBuild{
         if(this.animationStartTime==-1){
             this.animationStartTime = uniforms.animation_time / 1000;
             for(let i = 0; i<this.shape.nodes.length; i++){
-                this.startTimes[i] = this.animationStartTime + 0.50 * i;
+                this.startTimes[i] = this.animationStartTime + 0.25 * i;
             }
         }
         for(let i = 0; i<this.shape.nodes.length; i++){
