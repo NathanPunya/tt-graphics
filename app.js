@@ -8,9 +8,9 @@ import { House } from "./background.js";
 export const external = defs.external =
   class external extends Component {
 
-    constructor(){
+    constructor() {
       super();
-      this.t_sim = 0; 
+      this.t_sim = 0;
     }
 
     init() {
@@ -43,6 +43,7 @@ export const external = defs.external =
           caller.controls = new Movement_Controls(this) // Uses custom movement controls
         );
 
+        //Camera stuff
         Shader.assign_camera(
           Mat4.look_at(vec3(5, 8, 25), vec3(0, 5, 0), vec3(0, 1, 0)),
           this.uniforms
@@ -62,7 +63,7 @@ export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.5; // Adjust movement speed
+    this.movement_speed = 0.25; // Adjust movement speed
     this.key_pressed = {};
 
     this.setup_key_listeners();
@@ -81,8 +82,8 @@ export class Movement_Controls extends Component {
   render_animation(caller) {
 
     let move = Mat4.identity();
-    
-    switch(true) {
+
+    switch (true) {
       case this.key_pressed["w"]:
         move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // move forward (-z direction)
         this.main.mini_fig.move_mini_fig(move);
@@ -110,7 +111,7 @@ export class Movement_Controls extends Component {
         this.main.mini_fig.reset();
         break;
     }
-  
+
     // Draw Mini Figure with updated root transformation
     this.main.mini_fig.draw(caller, this.main.uniforms);
   }
