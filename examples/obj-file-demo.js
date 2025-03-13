@@ -11,7 +11,9 @@ class Shape_From_File extends Shape
     { super( "position", "normal", "texture_coord" );
                                     // Begin downloading the mesh. Once that completes, return
                                     // control to our parse_into_mesh function.
-      this.load_file( filename );
+      // Store the promise so that we can wait for it externally.
+      this.loadPromise = this.load_file( filename );
+      //this.load_file( filename );
     }
   load_file( filename )
       {                             // Request the external file and wait for it to load.
@@ -23,8 +25,7 @@ class Shape_From_File extends Shape
           .then( obj_file_contents => this.parse_into_mesh( obj_file_contents ) )
           .catch( error => { throw "OBJ file loader:  OBJ file either not found or is of unsupported format." } )
       }
-  parse_into_mesh( data )
-    {                           // Adapted from the "webgl-obj-loader.js" library found online:
+  parse_into_mesh( data ){ // Adapted from the "webgl-obj-loader.js" library found online:
       var verts = [], vertNormals = [], textures = [], unpacked = {};
 
       unpacked.verts = [];        unpacked.norms = [];    unpacked.textures = [];
@@ -105,7 +106,22 @@ class Shape_From_File extends Shape
       this.heightY = maxY - minY;   
       this.heightZ = maxZ - minZ;
       this.ready = true;
+  }
+
+  getDimensions() {
+    if (!this.ready) {
+      console.warn("Shape not loaded yet.");
+      return null;
     }
+    return {
+      min: this.min,       // vec3 containing the minimum corner (x, y, z)
+      max: this.max,       // vec3 containing the maximum corner (x, y, z)
+      width: this.heightX, // difference along X
+      height: this.heightY, // difference along Y
+      depth: this.heightZ  // difference along Z
+    };
+  }
+    
   draw( caller, uniforms, model_transform, material )
     {               // draw(): Same as always for shapes, but cancel all
                     // attempts to draw the shape before it loads:

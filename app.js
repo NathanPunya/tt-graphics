@@ -38,9 +38,11 @@ export const external = defs.external =
       this.animateObjectList = [];
 
       this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
-      this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
-      this.animateObjectList.push(this.animateCar);
-
+      this.car.onReady(()=>{
+        this.animateCar = new AnimateBuild(this.car, [-10, 20, -5, 20]);
+        this.animateObjectList.push(this.animateCar);
+      })
+      
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
       this.uniforms.lights = [];

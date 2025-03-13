@@ -6,10 +6,12 @@ import { Node } from "./mini_figure.js";
 import { getRandomInt, getRandomFloat} from "./utils.js";
 
 export class NodeAnimated extends Node{
-    constructor(name, shape, transform, material, start_transform_matrix){
+    constructor(name, shape, transform, material){
         super(name, shape, transform, material);
         this.end_transform_matrix = transform;
         this.start_transform_matrix = transform;
+
+        //this.dimensions = shape.getDimensions();
     }
 
     undoHelper(M){
@@ -38,12 +40,81 @@ export class NodeAnimated extends Node{
 
         this.transform_matrix = M.pre_multiply(Mat4.translation(newPos[0], newPos[1], newPos[2]));
     }
+
+    getTransformedBoundingBox() {
+        // Ensure the shape is loaded and has a bounding box.
+        if (!this.shape.ready) {
+          console.warn("Shape not loaded yet.");
+          return null;
+        }
+        
+        // Get the original bounding box (local space)
+        const min = this.shape.min; // e.g. [minX, minY, minZ]
+        const max = this.shape.max; // e.g. [maxX, maxY, maxZ]
+      
+        // Create the 8 corners of the bounding box.
+        const corners = [
+          vec3(min[0], min[1], min[2]),
+          vec3(min[0], min[1], max[2]),
+          vec3(min[0], max[1], min[2]),
+          vec3(min[0], max[1], max[2]),
+          vec3(max[0], min[1], min[2]),
+          vec3(max[0], min[1], max[2]),
+          vec3(max[0], max[1], min[2]),
+          vec3(max[0], max[1], max[2])
+        ];
+      
+        // Transform each corner by the current transform matrix.
+        // (Assuming this.transform_matrix is the one you use to draw the object.)
+        let newMin = [Infinity, Infinity, Infinity];
+        let newMax = [-Infinity, -Infinity, -Infinity];
+      
+        for (const corner of corners) {
+          // Convert to homogeneous coordinates.
+          const transformed = this.transform_matrix.times(vec4(corner[0], corner[1], corner[2], 1));
+          // Update newMin and newMax.
+          newMin[0] = Math.min(newMin[0], transformed[0]);
+          newMin[1] = Math.min(newMin[1], transformed[1]);
+          newMin[2] = Math.min(newMin[2], transformed[2]);
+      
+          newMax[0] = Math.max(newMax[0], transformed[0]);
+          newMax[1] = Math.max(newMax[1], transformed[1]);
+          newMax[2] = Math.max(newMax[2], transformed[2]);
+        }
+      
+        return {
+          min: newMin,
+          max: newMax,
+          width: newMax[0] - newMin[0],
+          height: newMax[1] - newMin[1],
+          depth: newMax[2] - newMin[2]
+        };
+      }
+      
 }
 
 export class BuildableLego{
     constructor(){
         //holds all the pieces, the order of this list is the order that they will be built in the animation
         this.nodes = [];
+
+        // Prepare for asynchronous loading:
+        this.ready = false;
+        this.readyCallbacks = [];
+    }
+
+    // Register a callback to be called when the car is ready.
+    onReady(callback) {
+        this.readyCallbacks.push(callback);
+        if (this.ready)
+        callback();
+    }
+
+    // Internal method to mark the Car as ready.
+    _setReady() {
+        this.ready = true;
+        this.readyCallbacks.forEach(cb => cb());
+        this.readyCallbacks = [];
     }
     getPieceNodes(){
         return this.nodes;
@@ -81,6 +152,7 @@ export class AnimateBuild{
         //starts not built
         this.buildState = this.UNBUILT;        
 
+        this.candidateBoxes = [];
         this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
 
         this.generatePath();
@@ -144,6 +216,7 @@ export class AnimateBuild{
         return this.startPosBoundaries;
     }
 
+    /*
     generateStartPosition(allStartPositions, minDist, maxAttempts = 100) 
     {
         const minX = this.startPosBoundaries[0];
@@ -183,10 +256,76 @@ export class AnimateBuild{
         console.warn("Could not find a non-overlapping position after many attempts!");
         // fallback: just return the last candidate or null
         return vec3((minX + maxX)/2, 1, (minZ + maxZ)/2);
-    }     
-
+    }   
+        */  
+    generateStartPosition(existingCandidates, candidateDims, minBuffer = 0, maxAttempts = 100) {
+        const minX = this.startPosBoundaries[0];
+        const maxX = this.startPosBoundaries[1];
+        const minZ = this.startPosBoundaries[2];
+        const maxZ = this.startPosBoundaries[3];
+        
+        // Helper function: check for overlap in X and Z.
+        function boxesOverlap(box1, box2) {
+          return !(box1.max[0] < box2.min[0] || box1.min[0] > box2.max[0] ||
+                   box1.max[2] < box2.min[2] || box1.min[2] > box2.max[2]);
+        }
+        
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const x = getRandomFloat(minX, maxX);
+          const y = 1; // fixed Y value.
+          const z = getRandomFloat(minZ, maxZ);
+          const candidate = vec3(x, y, z);
+          
+          // Compute candidate's bounding box in world space for X and Z.
+          // candidateDims should be an object with properties: { min, max, width, height, depth }
+          const candidateBox = {
+            min: [
+              candidate[0] + candidateDims.min[0] - minBuffer,
+              candidate[1] + candidateDims.min[1],
+              candidate[2] + candidateDims.min[2] - minBuffer
+            ],
+            max: [
+              candidate[0] + candidateDims.max[0] + minBuffer,
+              candidate[1] + candidateDims.max[1],
+              candidate[2] + candidateDims.max[2] + minBuffer
+            ]
+          };
+          
+          let valid = true;
+          for (const existing of existingCandidates) {
+            if (boxesOverlap(candidateBox, existing.box)) {
+              valid = false;
+              break;
+            }
+          }
+          if (valid) {
+            existingCandidates.push({ pos: candidate, box: candidateBox });
+            return candidate;
+          }
+        }
+        
+        console.warn("Could not find a non-overlapping candidate after many attempts!");
+        // Fallback: return center of boundary.
+        const fallback = vec3((minX + maxX) / 2, 1, (minZ + maxZ) / 2);
+        const fallbackBox = {
+          min: [
+            fallback[0] + candidateDims.min[0] - minBuffer,
+            fallback[1] + candidateDims.min[1],
+            fallback[2] + candidateDims.min[2] - minBuffer
+          ],
+          max: [
+            fallback[0] + candidateDims.max[0] + minBuffer,
+            fallback[1] + candidateDims.max[1],
+            fallback[2] + candidateDims.max[2] + minBuffer
+          ]
+        };
+        existingCandidates.push({ pos: fallback, box: fallbackBox });
+        return fallback;
+    }
+      
     generatePath(){
-        this.allStartPositions = [];
+        //this.allStartPositions = [];
+        this.candidateBoxes = [];
         for(let i = 0; i<this.shape.nodes.length; i++){
             let node = this.shape.nodes[i];
 
@@ -201,18 +340,39 @@ export class AnimateBuild{
             const z = position[2];
 
             const endPos = vec3(x, y, z);
-            const startPos = this.generateStartPosition(this.allStartPositions, 10, 100);
+
+            // Get the dimensions from the shape.
+            const dims = node.shape.getDimensions();
+            console.log(node.name);
+
+            const startPos = this.generateStartPosition(this.candidateBoxes, dims, 2, 100);
+            //const startPos = this.generateStartPosition(this.allStartPositions, 10, 100);
             node.setStartPos(startPos);
+            console.log(startPos, dims);
 
             //Add Starting and End point to the spline:
             let midpoint = vec3(0,0,0);
             for(let i = 0; i<startPos.length; i++){
                 midpoint[i] = (startPos[i] + endPos[i])/2;
             }
-            const variedIndex = getRandomInt(0, 2);
+            let variedIndex = getRandomInt(0, 2);
+            //try to make the last nodes use a Y-spline, makes it look like they are stacking at the end
+            if(this.shape.nodes.length - i < 0.2 * this.shape.nodes.length){
+                variedIndex = 1;
+            }
+           
             midpoint[variedIndex]  = Math.min(startPos[variedIndex], endPos[variedIndex]) - 20; //make it curve sort of upwards/sideways in random direction
+            let bendFactor = 4.5; //increasing will make the "bend" steeper or more drastic
+            if(variedIndex == 1){
+                bendFactor = 1.5 * bendFactor;
+            }
             
-            const bendFactor = 3.0; //increasing will make the "bend" steeper or more drastic
+            // Clamp the midpoint's y-coordinate so it does not go below a certain threshold:
+            const minYThreshold = 0; // set the minimum allowed y value
+            if(midpoint[1] < minYThreshold){
+                midpoint[1] = minYThreshold;
+            }
+
             let startTan = midpoint.minus(startPos);
             let endTan = midpoint.minus(endPos);
             startTan = startTan.times(bendFactor);
