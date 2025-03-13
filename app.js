@@ -142,21 +142,12 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-
-
-    const t = this.uniforms.animation_time / 1000;
-    let isBuild = false;
-    if(t>5){
-      isBuild = true;
-    }
-    if(t>15){
-      isBuild = false;
-    }
-
+    
     //Loop through to handle all of the buildable objects
     for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
       let animateObject = this.animateObjectList[animIndex];
-      animateObject.handleBuildState(isBuild);
+
+      animateObject.handleBuildState(this.mini_fig.requestingBuild);
       animateObject.drawPieces(caller, this.uniforms);
     }    
   }
