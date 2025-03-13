@@ -347,21 +347,34 @@ class Mini_Figure {
     }
     
 
-}
-
-
-class Node {
-    constructor(name, shape, transform, material) {
-        this.name = name;
-        this.shape = shape;
-        this.transform_matrix = transform;
-        this.parent_arc = null;
-        this.children_arcs = [];
-        this.material = material;
+    // returns direction of mini-fig
+    get_direction() {
+        let direction_matrix = Mat4.identity();
+        
+        if (this.direction[0] === 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(0, 0, 1, 0);
+        else if (this.direction[0] === 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(Math.PI, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] === 0)
+            direction_matrix = Mat4.rotation(Math.PI / 2, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] === 0)
+            direction_matrix = Mat4.rotation(-Math.PI / 2, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] > 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(3 * Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] > 0)
+            direction_matrix = Mat4.rotation(-Math.PI / 4, 0, 1, 0);
+        else if (this.direction[0] < 0 && this.direction[1] < 0)
+            direction_matrix = Mat4.rotation(-3 * Math.PI / 4, 0, 1, 0);
+        
+        return direction_matrix;
     }
+    
+
 }
 
-class Arc {
+export class Arc {
     constructor(name, parent, child, location) {
         this.name = name;
         this.parent_node = parent;
@@ -400,4 +413,22 @@ class Arc {
         if(this.dof.Rz) { this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 0, 1)); }
     }
 
+}
+export class Node {
+    constructor(name, shape, transform, material) {
+        this.name = name;
+        this.shape = shape;
+        this.transform_matrix = transform;
+        this.parent_arc = null;
+        this.children_arcs = [];
+        this.material = material;
+    }
+}
+export class End_Effector {
+    constructor(name, parent, local_position) {
+        this.name = name;
+        this.parent = parent;
+        this.local_position = local_position;
+        this.global_position = null;
+    }
 }

@@ -85,6 +85,25 @@ class Shape_From_File extends Shape
         this.indices = unpacked.indices;
       }
       this.normalize_positions( false );
+      // Then compute bounding box:
+      let minX =  Infinity, minY =  Infinity, minZ =  Infinity;
+      let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+      for (const p of this.arrays.position) {
+        if (p[0] < minX) minX = p[0];
+        if (p[0] > maxX) maxX = p[0];
+        if (p[1] < minY) minY = p[1];
+        if (p[1] > maxY) maxY = p[1];
+        if (p[2] < minZ) minZ = p[2];
+        if (p[2] > maxZ) maxZ = p[2];
+      }
+
+      // Store these in the shape:
+      this.min = vec3(minX, minY, minZ);
+      this.max = vec3(maxX, maxY, maxZ);
+      this.heightX = maxX - minX;
+      this.heightY = maxY - minY;   
+      this.heightZ = maxZ - minZ;
       this.ready = true;
     }
   draw( caller, uniforms, model_transform, material )
