@@ -12,14 +12,31 @@ export class NodeAnimated extends Node{
         this.start_transform_matrix = transform;
     }
 
-    setStartPos(startPos){
-        const start_matrix = this.start_transform_matrix.pre_multiply(Mat4.translation(startPos[0], startPos[1], startPos[2]));
-        this.start_transform_matrix = start_matrix;
+    undoHelper(M){
+        const origin = vec4(0,0,0,1);
+        const position = M.times(origin); 
+
+        const x = position[0];
+        const y = position[1];
+        const z = position[2];
+
+        const undo = Mat4.translation(-x, -y, -z);
+        M = undo.times(M);
+        return M;
+    }
+    
+    setStartPos(newPos){
+        let M = this.start_transform_matrix;
+        M = this.undoHelper(M);
+
+        this.start_transform_matrix = M.pre_multiply(Mat4.translation(newPos[0], newPos[1], newPos[2]));
     }
 
-    setCurrentPos(currentPos){
-        const current_matrix = this.transform_matrix.pre_multiply(Mat4.translation(currentPos[0], currentPos[1], currentPos[2]));
-        this.transform_matrix = current_matrix;
+    setCurrentPos(newPos){
+        let M = this.start_transform_matrix;
+        M = this.undoHelper(M);
+
+        this.transform_matrix = M.pre_multiply(Mat4.translation(newPos[0], newPos[1], newPos[2]));
     }
 }
 
@@ -39,6 +56,9 @@ export class BuildableLego{
     }
 }
 
+
+
+
 export class AnimateBuild{
     constructor(shape, startPosBoundary){
         this.shape = shape;
@@ -48,10 +68,45 @@ export class AnimateBuild{
         this.animationStartTime =-1;
         this.startTimes = [];
 
+        //state variables
+        this.UNBUILT = 0; 
+        this.BUILDING = 1;
+        this.BUILT = 2;
+        //starts not built
+        this.buildState = this.UNBUILT;
+        this.buildProgress = 0; //0 not built, 1 is fully built
+        
+        //total amount of time it takes to build the object
+        this.totalBuildTime = 1.5;
+
         this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
 
         this.generatePath();
 
+    }
+
+    handleBuildState(buildRequest){
+        switch(this.buildState){
+            case this.UNBUILT:
+                if(buildRequest){
+                    this.buildState = this.BUILDING;
+                }
+                break;
+            case this.BUILDING:
+                if(this.buildProgress>=1){
+                    this.buildProgress = 1;
+                    this.buildState = this.BUILT;
+                }
+                break;
+            case this.BUILT:
+                //Needs to stay built
+                break;
+
+        }
+    }
+
+    getStartPosBoundaries(){
+        return this.startPosBoundaries;
     }
 
     generateStartPosition(allStartPositions, minDist, maxAttempts = 100) 
@@ -142,36 +197,60 @@ export class AnimateBuild{
     getPathTransform(uniforms, index){
         const global_t = uniforms.animation_time / 1000;
         const timeDiff = global_t - this.startTimes[index];
+        
         let t_on_line;
         if(global_t < this.startTimes[index]){
             t_on_line = 0;
         }else{
-            t_on_line = Math.min(2 * timeDiff , 1); //scale timeDiff to change speed
+            t_on_line = Math.min(timeDiff/this.pieceDuration , 1); //scale timeDiff to change speed
         }
         let node = this.shape.nodes[index];
 
-        const M = node.transform_matrix;
-        const origin = vec4(0,0,0,1);
-        const currentPos = M.times(origin); 
-
         const pathPoint = this.splines[index].get_position(t_on_line);
-        const posChange = pathPoint.minus(currentPos);
-
-        node.setCurrentPos(posChange);
-
+        node.setCurrentPos(pathPoint);
         return node.transform_matrix;
     }
 
-    drawPieces(caller, uniforms){
-        if(this.animationStartTime==-1){
-            this.animationStartTime = uniforms.animation_time / 1000;
-            for(let i = 0; i<this.shape.nodes.length; i++){
-                this.startTimes[i] = this.animationStartTime + 0.25 * i;
-            }
+    createStartTimes(uniforms){
+        this.animationStartTime = uniforms.animation_time / 1000;
+        const numNodes = this.shape.nodes.length;
+
+        //these two must add up to 1
+        const totalSpacingRatio = 0.7;    // last piece starts at 30% of total time
+        const pieceDurationRatio = 0.3;   // each piece takes 70% of total time to finish
+        
+        this.totalSpacing = totalSpacingRatio * this.totalBuildTime;
+        this.pieceDuration = pieceDurationRatio * this.totalBuildTime;
+
+        for(let i = 0; i<this.shape.nodes.length; i++){
+            const fraction = (i / (numNodes - 1)); // from 0..1
+            this.startTimes[i] = this.animationStartTime + fraction * this.totalSpacing;
         }
+    }
+
+    drawPieces(caller, uniforms){
+        //to handle start of animations:
+        if(this.buildState == this.UNBUILT){
+            this.createStartTimes(uniforms);
+        }
+        
         for(let i = 0; i<this.shape.nodes.length; i++){
             let node = this.shape.nodes[i];
-            node.shape.draw(caller, uniforms, this.getPathTransform(uniforms, i), node.material);
+            let nodeTransform;
+            if(this.buildState == this.UNBUILT){
+                nodeTransform = node.start_transform_matrix;
+            }
+            if(this.buildState == this.BUILDING){
+                nodeTransform = this.getPathTransform(uniforms, i);
+                if(uniforms.animation_time / 1000 >= this.animationStartTime + this.totalBuildTime){
+                    this.buildProgress = 1;
+                    this.buildState = this.BUILT;
+                }
+            }
+            if(this.buildState == this.BUILT){
+                nodeTransform = node.end_transform_matrix;
+            }
+            node.shape.draw(caller, uniforms, nodeTransform, node.material);
             //this.curve.draw(caller, uniforms);
         }
     }

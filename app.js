@@ -35,8 +35,11 @@ export const external = defs.external =
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
 
+      this.animateObjectList = [];
+
       this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
       this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
+      this.animateObjectList.push(this.animateCar);
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
@@ -139,9 +142,37 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-    this.car.draw(caller, this.uniforms);
-    this.animateCar.drawPieces(caller, this.uniforms);
-    
-    //this.shapes.car.draw(caller, this.uniforms, Mat4.scale(4,4,4).times(Mat4.translation(2,1,0)).times(Mat4.rotation(90,0,1,0)), {...this.materials.lego, color: color(1,0.3,1,1)});
+
+
+    const t = this.uniforms.animation_time / 1000;
+    let isBuild = false;
+    if(t>5){
+      isBuild = true;
+    }
+    if(t>15){
+      isBuild = false;
+    }
+
+    //Loop through to handle all of the buildable objects
+    for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
+      let animateObject = this.animateObjectList[animIndex];
+      animateObject.handleBuildState(isBuild);
+      animateObject.drawPieces(caller, this.uniforms);
+    }    
   }
 } 
+
+/*
+  If mini-fig moves within the buildable area, or is within a specified
+  distance from the boundary, then the minifig can trigger the build animation.
+
+  If minifig triggers the build animation, then it should start building.
+
+  So, only need to pass a check for when to start building.
+
+  
+
+
+
+
+*/
