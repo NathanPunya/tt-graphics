@@ -344,33 +344,7 @@ class Mini_Figure {
             direction_matrix = Mat4.rotation(-3 * Math.PI / 4, 0, 1, 0);
         
         return direction_matrix;
-    }
-    
-
-    // returns direction of mini-fig
-    get_direction() {
-        let direction_matrix = Mat4.identity();
-        
-        if (this.direction[0] === 0 && this.direction[1] > 0)
-            direction_matrix = Mat4.rotation(0, 0, 1, 0);
-        else if (this.direction[0] === 0 && this.direction[1] < 0)
-            direction_matrix = Mat4.rotation(Math.PI, 0, 1, 0);
-        else if (this.direction[0] > 0 && this.direction[1] === 0)
-            direction_matrix = Mat4.rotation(Math.PI / 2, 0, 1, 0);
-        else if (this.direction[0] < 0 && this.direction[1] === 0)
-            direction_matrix = Mat4.rotation(-Math.PI / 2, 0, 1, 0);
-        else if (this.direction[0] > 0 && this.direction[1] > 0)
-            direction_matrix = Mat4.rotation(Math.PI / 4, 0, 1, 0);
-        else if (this.direction[0] > 0 && this.direction[1] < 0)
-            direction_matrix = Mat4.rotation(3 * Math.PI / 4, 0, 1, 0);
-        else if (this.direction[0] < 0 && this.direction[1] > 0)
-            direction_matrix = Mat4.rotation(-Math.PI / 4, 0, 1, 0);
-        else if (this.direction[0] < 0 && this.direction[1] < 0)
-            direction_matrix = Mat4.rotation(-3 * Math.PI / 4, 0, 1, 0);
-        
-        return direction_matrix;
-    }
-    
+    }   
 
 }
 
