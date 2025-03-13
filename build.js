@@ -72,6 +72,7 @@ export class AnimateBuild{
         this.UNBUILT = 0; 
         this.BUILDING = 1;
         this.BUILT = 2;
+        
         //starts not built
         this.buildState = this.UNBUILT;
         this.buildProgress = 0; //0 not built, 1 is fully built
