@@ -29,7 +29,7 @@ export const external = defs.external =
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(5, 5, 5));
 
-      this.car = new Car(vec3(-3,4,10), vec3(0.7, 0.7, 0.7));
+      this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
       this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
 
       this.uniforms.model_transform = Mat4.identity();

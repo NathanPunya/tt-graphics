@@ -51,6 +51,7 @@ export class AnimateBuild{
         this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
 
         this.generatePath();
+
     }
 
     generateStartPosition(allStartPositions, minDist, maxAttempts = 100) 
@@ -92,8 +93,7 @@ export class AnimateBuild{
         console.warn("Could not find a non-overlapping position after many attempts!");
         // fallback: just return the last candidate or null
         return vec3((minX + maxX)/2, 1, (minZ + maxZ)/2);
-      }
-      
+    }     
 
     generatePath(){
         this.allStartPositions = [];
