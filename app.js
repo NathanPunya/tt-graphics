@@ -143,11 +143,13 @@ export class main extends external {
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
     
+    //in the form of vec3
+    const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
     //Loop through to handle all of the buildable objects
     for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
       let animateObject = this.animateObjectList[animIndex];
 
-      animateObject.handleBuildState(this.mini_fig.requestingBuild);
+      animateObject.handleBuildState(this.mini_fig.requestingBuild, currentMiniFigPos);
       animateObject.drawPieces(caller, this.uniforms);
     }    
   }
@@ -163,7 +165,22 @@ export class main extends external {
 
   
 
+  Notes for decay time:
 
+  Start times are created based on the animation start time, which is measured in global time.
 
+  Each start time is also measured in global time. 
+
+  - startTime[i] = animationStartTime  + (x * totalSpacing)
+  - x = (i / (numNodes - 1))
+
+  Need to have a global animationDecayStartTime which will hold for the DEFINITE point when it should start decaying.
+  Then, need to make a list this.decayStartTimes which will hold for each piece that should have a certain calculation.
+
+  - decayStartTime[i] = 
+
+  START -- start1 -- start2 --- BREAK
+
+  BREAK -- start2 -- start1 --- START
 
 */

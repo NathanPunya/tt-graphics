@@ -68,6 +68,9 @@ export class AnimateBuild{
         this.animationStartTime =-1;
         this.startTimes = [];
 
+        this.animationDecayStartTime = -1;
+        this.decayStartTimes = [];
+
         //state variables
         this.UNBUILT = 0; 
         this.BUILDING = 1;
@@ -75,7 +78,9 @@ export class AnimateBuild{
         
         //starts not built
         this.buildState = this.UNBUILT;
-        this.buildProgress = 0; //0 not built, 1 is fully built
+
+        //starts in upward build mode
+        this.upwardBuild = true;
         
         //total amount of time it takes to build the object
         this.totalBuildTime = 1.5;
@@ -83,19 +88,36 @@ export class AnimateBuild{
         this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
 
         this.generatePath();
+        this.global_t = 0;
 
     }
 
-    handleBuildState(buildRequest){
+    handleBuildState(buildRequest, minifigPos){
         switch(this.buildState){
             case this.UNBUILT:
-                if(buildRequest){
-                    this.buildState = this.BUILDING;
+                if(this.checkWithinBounds(minifigPos)){
+                    if(buildRequest){
+                        this.buildState = this.BUILDING;
+                        this.upwardBuild = true;
+                        this.createStartTimes();
+                        this.decayStartTime = new Array(this.startTimes.lenth).fill(-1);
+
+                    }else{
+                        //TODO: should do the hopping animation to signify that it can be built
+                    }
                 }
                 break;
             case this.BUILDING:
-                if(this.buildProgress>=1){
-                    this.buildProgress = 1;
+                if(buildRequest){
+                    this.upwardBuild = true;
+                    this.decayStartTime.fill(-1); 
+                }else{
+                    this.upwardBuild = false;
+                    if(this.decayStartTime === -1){ //need to mark when decay starts
+                        this.decayStartTime = this.global_t;
+                    }
+                }
+                if(this.global_t >= this.animationStartTime + this.totalBuildTime){
                     this.buildState = this.BUILT;
                 }
                 break;
@@ -103,6 +125,25 @@ export class AnimateBuild{
                 //Needs to stay built
                 break;
 
+        }
+    }
+
+    checkWithinBounds(position){
+        //extract values from position input
+        const x = position[0];
+        const y = position[1];
+        const z = position[2];
+
+        //extract values from boundary
+        const minX = this.startPosBoundaries[0];
+        const maxX = this.startPosBoundaries[1];
+        const minZ = this.startPosBoundaries[2];
+        const maxZ = this.startPosBoundaries[3];
+
+        if(minX <= x & x <= maxX & minZ <= z <= maxZ){
+            return true;
+        }else{
+            return false;
         }
     }
 
@@ -195,15 +236,21 @@ export class AnimateBuild{
         }       
     }
 
-    getPathTransform(uniforms, index){
-        const global_t = uniforms.animation_time / 1000;
-        const timeDiff = global_t - this.startTimes[index];
+    getPathTransform(index){
+        const pieceStartTime = this.startTimes[index];
+        const timeSinceStart = this.global_t - pieceStartTime;
+        //const timeDiff = this.global_t - this.startTimes[index];
         
         let t_on_line;
-        if(global_t < this.startTimes[index]){
-            t_on_line = 0;
+        if(this.global_t < pieceStartTime){
+            t_on_line = 0; //before this piece animation starts
         }else{
-            t_on_line = Math.min(timeDiff/this.pieceDuration , 1); //scale timeDiff to change speed
+            if(this.upwardBuild){
+                t_on_line = Math.min(timeSinceStart/this.pieceDuration , 1);
+            }else{
+                const timeSinceDecay = this.global_t - this.decayStartTime;
+                t_on_line = Math.max(1 - (timeSinceDecay/this.pieceDuration) , 0);
+            }
         }
         let node = this.shape.nodes[index];
 
@@ -212,8 +259,8 @@ export class AnimateBuild{
         return node.transform_matrix;
     }
 
-    createStartTimes(uniforms){
-        this.animationStartTime = uniforms.animation_time / 1000;
+    createStartTimes(){
+        this.animationStartTime = this.global_t;
         const numNodes = this.shape.nodes.length;
 
         //these two must add up to 1
@@ -223,18 +270,24 @@ export class AnimateBuild{
         this.totalSpacing = totalSpacingRatio * this.totalBuildTime;
         this.pieceDuration = pieceDurationRatio * this.totalBuildTime;
 
-        for(let i = 0; i<this.shape.nodes.length; i++){
+        for(let i = 0; i<numNodes; i++){
             const fraction = (i / (numNodes - 1)); // from 0..1
             this.startTimes[i] = this.animationStartTime + fraction * this.totalSpacing;
         }
     }
 
-    drawPieces(caller, uniforms){
-        //to handle start of animations:
-        if(this.buildState == this.UNBUILT){
-            this.createStartTimes(uniforms);
+    createDecayTimes(){
+        this.animationDecayStartTime = this.global_t;
+        const numNodes = this.shape.nodes.length;
+
+        for(let i = 0; i<numNodes; i++){
+            this.decayStartTimes[i] = 
         }
-        
+    }
+
+    drawPieces(caller, uniforms){
+        this.global_t = uniforms.animation_time / 1000;
+               
         for(let i = 0; i<this.shape.nodes.length; i++){
             let node = this.shape.nodes[i];
             let nodeTransform;
@@ -242,11 +295,7 @@ export class AnimateBuild{
                 nodeTransform = node.start_transform_matrix;
             }
             if(this.buildState == this.BUILDING){
-                nodeTransform = this.getPathTransform(uniforms, i);
-                if(uniforms.animation_time / 1000 >= this.animationStartTime + this.totalBuildTime){
-                    this.buildProgress = 1;
-                    this.buildState = this.BUILT;
-                }
+                nodeTransform = this.getPathTransform(i);
             }
             if(this.buildState == this.BUILT){
                 nodeTransform = node.end_transform_matrix;
