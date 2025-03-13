@@ -145,42 +145,13 @@ export class main extends external {
     
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
+
     //Loop through to handle all of the buildable objects
     for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
       let animateObject = this.animateObjectList[animIndex];
 
-      animateObject.handleBuildState(this.mini_fig.requestingBuild, currentMiniFigPos);
-      animateObject.drawPieces(caller, this.uniforms);
+      animateObject.draw(caller, this.uniforms, this.mini_fig.requestingBuild, currentMiniFigPos);
     }    
   }
 } 
 
-/*
-  If mini-fig moves within the buildable area, or is within a specified
-  distance from the boundary, then the minifig can trigger the build animation.
-
-  If minifig triggers the build animation, then it should start building.
-
-  So, only need to pass a check for when to start building.
-
-  
-
-  Notes for decay time:
-
-  Start times are created based on the animation start time, which is measured in global time.
-
-  Each start time is also measured in global time. 
-
-  - startTime[i] = animationStartTime  + (x * totalSpacing)
-  - x = (i / (numNodes - 1))
-
-  Need to have a global animationDecayStartTime which will hold for the DEFINITE point when it should start decaying.
-  Then, need to make a list this.decayStartTimes which will hold for each piece that should have a certain calculation.
-
-  - decayStartTime[i] = 
-
-  START -- start1 -- start2 --- BREAK
-
-  BREAK -- start2 -- start1 --- START
-
-*/

@@ -42,6 +42,7 @@ export class NodeAnimated extends Node{
 
 export class BuildableLego{
     constructor(){
+        //holds all the pieces, the order of this list is the order that they will be built in the animation
         this.nodes = [];
     }
     getPieceNodes(){
@@ -57,19 +58,20 @@ export class BuildableLego{
 }
 
 
-
-
 export class AnimateBuild{
     constructor(shape, startPosBoundary){
         this.shape = shape;
 
         this.splines = [];
 
-        this.animationStartTime =-1;
         this.startTimes = [];
+        //this.decayStartTimes = [];
 
-        this.animationDecayStartTime = -1;
-        this.decayStartTimes = [];
+        //total amount of time it takes to build the object
+        this.totalBuildTime = 1.5;
+
+        this.buildFractions = []; //this holds the t values for each piece on their respective splines
+        this.buildRate = 2.5; // this will adjust the build speed of each piece
 
         //state variables
         this.UNBUILT = 0; 
@@ -77,13 +79,7 @@ export class AnimateBuild{
         this.BUILT = 2;
         
         //starts not built
-        this.buildState = this.UNBUILT;
-
-        //starts in upward build mode
-        this.upwardBuild = true;
-        
-        //total amount of time it takes to build the object
-        this.totalBuildTime = 1.5;
+        this.buildState = this.UNBUILT;        
 
         this.startPosBoundaries = startPosBoundary; // array or vec4 structured as [minX, maxX, minZ, maxZ]
 
@@ -93,31 +89,20 @@ export class AnimateBuild{
     }
 
     handleBuildState(buildRequest, minifigPos){
+        const isInside = this.checkWithinBounds(minifigPos);
         switch(this.buildState){
             case this.UNBUILT:
-                if(this.checkWithinBounds(minifigPos)){
-                    if(buildRequest){
-                        this.buildState = this.BUILDING;
-                        this.upwardBuild = true;
-                        this.createStartTimes();
-                        this.decayStartTime = new Array(this.startTimes.lenth).fill(-1);
-
-                    }else{
-                        //TODO: should do the hopping animation to signify that it can be built
-                    }
+                if(isInside && buildRequest){
+                    this.buildState = this.BUILDING;
+                    this.createStartTimes();
                 }
                 break;
             case this.BUILDING:
-                if(buildRequest){
-                    this.upwardBuild = true;
-                    this.decayStartTime.fill(-1); 
-                }else{
-                    this.upwardBuild = false;
-                    if(this.decayStartTime === -1){ //need to mark when decay starts
-                        this.decayStartTime = this.global_t;
-                    }
+                if(!isInside || !buildRequest){
+                    this.buildState = this.UNBUILT;
+                    //this.createDecayTimes(); (don't need this anymore but I dont wannt remove the function cuz it took a while to figure out)
                 }
-                if(this.global_t >= this.animationStartTime + this.totalBuildTime){
+                if(this.allPiecesFullyBuilt()){
                     this.buildState = this.BUILT;
                 }
                 break;
@@ -140,11 +125,19 @@ export class AnimateBuild{
         const minZ = this.startPosBoundaries[2];
         const maxZ = this.startPosBoundaries[3];
 
-        if(minX <= x & x <= maxX & minZ <= z <= maxZ){
+        if(minX <= x & x <= maxX && minZ <= z <= maxZ){
             return true;
         }else{
             return false;
         }
+    }
+
+    allPiecesFullyBuilt(){
+        return this.buildFractions.every(f => f >= 1.0);
+    }
+
+    allPiecesFullyUnbuilt(){
+        return this.buildFractions.every(f => f<= 0.0);
     }
 
     getStartPosBoundaries(){
@@ -208,7 +201,7 @@ export class AnimateBuild{
             const z = position[2];
 
             const endPos = vec3(x, y, z);
-            const startPos = this.generateStartPosition(this.allStartPositions, 3, 100);
+            const startPos = this.generateStartPosition(this.allStartPositions, 10, 100);
             node.setStartPos(startPos);
 
             //Add Starting and End point to the spline:
@@ -219,7 +212,7 @@ export class AnimateBuild{
             const variedIndex = getRandomInt(0, 2);
             midpoint[variedIndex]  = Math.min(startPos[variedIndex], endPos[variedIndex]) - 20; //make it curve sort of upwards/sideways in random direction
             
-            const bendFactor = 2.5; //increasing will make the "bend" steeper or more drastic
+            const bendFactor = 3.0; //increasing will make the "bend" steeper or more drastic
             let startTan = midpoint.minus(startPos);
             let endTan = midpoint.minus(endPos);
             startTan = startTan.times(bendFactor);
@@ -229,33 +222,19 @@ export class AnimateBuild{
             //this.splines[i].add_point(midpoint[0], midpoint[1], midpoint[2], midpoint[0] -1, midpoint[1] + 1, midpoint[2] -1);
             this.splines[i].add_point(endPos[0], endPos[1], endPos[2], endTan[0], endTan[1], endTan[2]);
             
-            
-            //const curves = (t) => this.splines[i].get_position(t);
-            //this.curve = new Curve_Shape(curves, 1000, color(1,0,0,1));
-
+            //initialize buildFractions for this piece to 0.0, implying unbuilt
+            this.buildFractions[i] = 0.0;
         }       
     }
 
-    getPathTransform(index){
-        const pieceStartTime = this.startTimes[index];
-        const timeSinceStart = this.global_t - pieceStartTime;
-        //const timeDiff = this.global_t - this.startTimes[index];
-        
-        let t_on_line;
-        if(this.global_t < pieceStartTime){
-            t_on_line = 0; //before this piece animation starts
-        }else{
-            if(this.upwardBuild){
-                t_on_line = Math.min(timeSinceStart/this.pieceDuration , 1);
-            }else{
-                const timeSinceDecay = this.global_t - this.decayStartTime;
-                t_on_line = Math.max(1 - (timeSinceDecay/this.pieceDuration) , 0);
-            }
-        }
-        let node = this.shape.nodes[index];
+    getPieceTransform(index){
+        const t = this.buildFractions[index];
 
-        const pathPoint = this.splines[index].get_position(t_on_line);
+        const pathPoint = this.splines[index].get_position(t);
+
+        let node = this.shape.nodes[index];
         node.setCurrentPos(pathPoint);
+
         return node.transform_matrix;
     }
 
@@ -265,10 +244,10 @@ export class AnimateBuild{
 
         //these two must add up to 1
         const totalSpacingRatio = 0.7;    // last piece starts at 30% of total time
-        const pieceDurationRatio = 0.3;   // each piece takes 70% of total time to finish
+        //const pieceDurationRatio = 0.3;   // each piece takes 70% of total time to finish
         
         this.totalSpacing = totalSpacingRatio * this.totalBuildTime;
-        this.pieceDuration = pieceDurationRatio * this.totalBuildTime;
+        //this.pieceDuration = pieceDurationRatio * this.totalBuildTime;
 
         for(let i = 0; i<numNodes; i++){
             const fraction = (i / (numNodes - 1)); // from 0..1
@@ -276,32 +255,81 @@ export class AnimateBuild{
         }
     }
 
+    //this function no longer in use, but I don't wanna delete it >:(
     createDecayTimes(){
         this.animationDecayStartTime = this.global_t;
         const numNodes = this.shape.nodes.length;
 
-        for(let i = 0; i<numNodes; i++){
-            this.decayStartTimes[i] = 
+        for(let i =0; i<numNodes; i++){
+            const fraction = ((numNodes - 1 - i)/(numNodes -1));
+            this.decayStartTimes[i] = this.animationDecayStartTime + fraction * this.totalSpacing;
         }
     }
 
-    drawPieces(caller, uniforms){
-        this.global_t = uniforms.animation_time / 1000;
-               
+    updateBuildFractions(dt){
+        const numPieces = this.shape.nodes.length;
+
+        if(this.buildState===this.BUILDING){
+            //When needs to build, should progress up towards 1.0
+            for(let i = 0; i<numPieces; i++){
+                if(this.global_t>=this.startTimes[i]){
+                    const current = this.buildFractions[i];
+                    const next = current + dt * this.buildRate;
+                    this.buildFractions[i] = Math.min(next, 1.0);
+                }
+                
+            }
+        }else if (this.buildState===this.UNBUILT){
+            //for UNBUILT should decay down 
+            for(let i = 0; i<numPieces; i++){
+                const current = this.buildFractions[i];
+                const next = current - dt * this.buildRate;
+                this.buildFractions[i] = Math.max(next, 0.0);
+                //OPTIONALLY, can add an if(this.global_t>=this.decayStartTimes[i]) check if pieces should decay relative to their start times, however in practice it doesnt look as good.
+            }
+        }
+    }
+
+    updateState(uniforms, minifigRequest, minifigPos){
+        //moved this in here to reduce functions needed to be called outside of this class
+        this.handleBuildState(minifigRequest, minifigPos);
+        
+        const t_now = uniforms.animation_time / 1000;
+        //get time difference between each render
+        const dt = Math.max(t_now - this.global_t, 0.0); // so it doesn't go below 0 by some weird bug or something
+        this.global_t = t_now;
+
+        this.updateBuildFractions(dt);
+    }
+
+    drawFullObject(caller, uniforms){
+        this.shape.draw(caller, uniforms);
+    }
+
+    drawByPiece(caller, uniforms){  
         for(let i = 0; i<this.shape.nodes.length; i++){
             let node = this.shape.nodes[i];
-            let nodeTransform;
-            if(this.buildState == this.UNBUILT){
-                nodeTransform = node.start_transform_matrix;
-            }
-            if(this.buildState == this.BUILDING){
-                nodeTransform = this.getPathTransform(i);
-            }
-            if(this.buildState == this.BUILT){
-                nodeTransform = node.end_transform_matrix;
-            }
+            const nodeTransform = this.getPieceTransform(i);
             node.shape.draw(caller, uniforms, nodeTransform, node.material);
             //this.curve.draw(caller, uniforms);
+        }
+        if(this.allPiecesFullyBuilt()){
+            this.buildState = this.BUILT;
+        }
+        if(this.allPiecesFullyUnbuilt()){
+            this.buildState = this.UNBUILT;
+        }
+    }
+
+    //this is what should be called to draw
+    draw(caller, uniforms, minifigRequest, minifigPos){
+        this.updateState(uniforms, minifigRequest, minifigPos);
+        
+        if(this.buildState != this.BUILT){
+            this.drawByPiece(caller,uniforms);
+            
+        }else{
+            this.drawFullObject(caller,uniforms);
         }
     }
 
