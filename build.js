@@ -147,7 +147,8 @@ export class AnimateBuild{
         //state variables
         this.UNBUILT = 0; 
         this.BUILDING = 1;
-        this.BUILT = 2;
+        this.HOPPING = 2;
+        this.BUILT = 3;
         
         //starts not built
         this.buildState = this.UNBUILT;        
@@ -157,6 +158,10 @@ export class AnimateBuild{
 
         this.generatePath();
         this.global_t = 0;
+
+        this.hopDuration = 0.2;
+        this.hopStartTime = null;
+        this.hopHeight = 0.25;
 
     }
 
@@ -175,9 +180,14 @@ export class AnimateBuild{
                     //this.createDecayTimes(); (don't need this anymore but I dont wannt remove the function cuz it took a while to figure out)
                 }
                 if(this.allPiecesFullyBuilt()){
-                    this.buildState = this.BUILT;
+                    this.buildState = this.HOPPING;
                 }
                 break;
+            case this.HOPPING:
+                if(this.hopStartTime === null){
+                    this.hopStartTime = this.global_t;
+                    this.triggerHop();
+                }
             case this.BUILT:
                 //Needs to stay built
                 break;
@@ -216,48 +226,6 @@ export class AnimateBuild{
         return this.startPosBoundaries;
     }
 
-    /*
-    generateStartPosition(allStartPositions, minDist, maxAttempts = 100) 
-    {
-        const minX = this.startPosBoundaries[0];
-        const maxX = this.startPosBoundaries[1];
-        const minZ = this.startPosBoundaries[2];
-        const maxZ = this.startPosBoundaries[3];
-
-        let lastCandidate;
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          // randomly pick a candidate position
-          const x = getRandomFloat(minX, maxX);
-          const y = 1;
-          const z = getRandomFloat(minZ, maxZ);
-          const candidate = vec3(x, y, z);
-          // check distance from every existing position
-          let valid = true;
-          for (const existingPos of allStartPositions) {
-            const dx = candidate[0] - existingPos[0];
-            //const dy = candidate[1] - existingPos[1];
-            const dz = candidate[2] - existingPos[2];
-            const dist = Math.sqrt(dx*dx + dz*dz);
-      
-            // if too close, reject and try again
-            if (dist < minDist) {
-              valid = false;
-              break;
-            }
-          }
-      
-          // if it's not overlapping, accept
-          if (valid) {
-            return candidate;
-          }
-        }
-      
-        // if we couldn't find a non-overlapping position, return something or throw an error
-        console.warn("Could not find a non-overlapping position after many attempts!");
-        // fallback: just return the last candidate or null
-        return vec3((minX + maxX)/2, 1, (minZ + maxZ)/2);
-    }   
-        */  
     generateStartPosition(existingCandidates, candidateDims, minBuffer = 0, maxAttempts = 100) {
         const minX = this.startPosBoundaries[0];
         const maxX = this.startPosBoundaries[1];
@@ -343,12 +311,10 @@ export class AnimateBuild{
 
             // Get the dimensions from the shape.
             const dims = node.shape.getDimensions();
-            console.log(node.name);
 
             const startPos = this.generateStartPosition(this.candidateBoxes, dims, 2, 100);
             //const startPos = this.generateStartPosition(this.allStartPositions, 10, 100);
             node.setStartPos(startPos);
-            console.log(startPos, dims);
 
             //Add Starting and End point to the spline:
             let midpoint = vec3(0,0,0);
@@ -462,6 +428,37 @@ export class AnimateBuild{
         this.updateBuildFractions(dt);
     }
 
+    triggerHop(){
+        this.hopStartTime = this.global_t;
+    }
+
+    drawHopAnimation(caller, uniforms){
+        if(this.hopStartTime === null){
+            //hop start time needs to be initialized first
+            return;
+        }
+        // Compute elapsed time (in seconds).
+        const t_now = uniforms.animation_time / 1000;
+        let dt = (t_now - this.hopStartTime) / this.hopDuration;
+        this.global_t = t_now;
+        
+        // Clamp t between 0 and 1.
+        if(dt > 1) dt = 1;
+
+        const numPieces = this.shape.nodes.length;
+        const offset = this.hopHeight * Math.sin((Math.PI * 2) * dt);
+        for(let i = 0; i<numPieces; i++){
+            let node = this.shape.nodes[i];
+            node.transform_matrix = node.transform_matrix.pre_multiply(Mat4.translation(0, offset, 0));
+            node.shape.draw(caller, uniforms, node.transform_matrix, node.material);
+        }
+
+        if(dt===1){
+            this.hopStartTime = null;
+            this.buildState = this.BUILT;
+        }
+    }
+
     drawFullObject(caller, uniforms){
         this.shape.draw(caller, uniforms);
     }
@@ -474,7 +471,8 @@ export class AnimateBuild{
             //this.curve.draw(caller, uniforms);
         }
         if(this.allPiecesFullyBuilt()){
-            this.buildState = this.BUILT;
+            //sthis.buildState = this.BUILT;
+            this.triggerHop(uniforms);
         }
         if(this.allPiecesFullyUnbuilt()){
             this.buildState = this.UNBUILT;
@@ -485,11 +483,14 @@ export class AnimateBuild{
     draw(caller, uniforms, minifigRequest, minifigPos){
         this.updateState(uniforms, minifigRequest, minifigPos);
         
-        if(this.buildState != this.BUILT){
-            this.drawByPiece(caller,uniforms);
-            
-        }else{
-            this.drawFullObject(caller,uniforms);
+        if(this.buildState === this.UNBUILT || this.buildState === this.BUILDING){
+            this.drawByPiece(caller, uniforms);
+        }
+        else if(this.buildState === this.HOPPING){
+            this.drawHopAnimation(caller, uniforms);
+        }
+        else if(this.buildState === this.BUILT){
+            this.drawFullObject(caller, uniforms);
         }
     }
 

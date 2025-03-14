@@ -39,7 +39,7 @@ export const external = defs.external =
 
       this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
       this.car.onReady(()=>{
-        this.animateCar = new AnimateBuild(this.car, [-10, 20, -5, 20]);
+        this.animateCar = new AnimateBuild(this.car, [-10, 20, 0, 20]);
         this.animateObjectList.push(this.animateCar);
       })
       
