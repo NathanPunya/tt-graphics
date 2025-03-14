@@ -207,7 +207,7 @@ export class AnimateBuild{
         const minZ = this.startPosBoundaries[2];
         const maxZ = this.startPosBoundaries[3];
 
-        if(minX <= x & x <= maxX && minZ <= z <= maxZ){
+        if(minX <= x && x <= maxX && minZ <= z && z <= maxZ){
             return true;
         }else{
             return false;
