@@ -4,8 +4,8 @@ const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } =
 
 import { Mini_Figure } from './mini_figure.js';
 import { House } from "./background.js";
-import {Car} from './car.js';
-import {HermiteSpline, Curve_Shape} from "./spline.js"
+import { Car } from './car.js';
+import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
 import { AnimateBuild } from "./build.js";
 
@@ -37,12 +37,12 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
-      this.car.onReady(()=>{
+      this.car = new Car(vec3(-3, 2, 10), vec3(0.7, 0.7, 0.7));
+      this.car.onReady(() => {
         this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
         this.animateObjectList.push(this.animateCar);
       })
-      
+
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
       this.uniforms.lights = [];
@@ -55,7 +55,7 @@ export const external = defs.external =
         this.animated_children.push(
           caller.controls = new Movement_Controls(this) // Uses custom movement controls
         );
-        
+
       }
       this.move_camera.render_animation(caller);
 
@@ -74,7 +74,7 @@ export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.25; // Adjust movement speed
+    this.movement_speed = 0.08; // Adjust movement speed
     this.key_pressed = {};
 
     this.setup_key_listeners();
@@ -144,16 +144,16 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-    
+
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
 
     //Loop through to handle all of the buildable objects
-    for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
+    for (let animIndex = 0; animIndex < this.animateObjectList.length; animIndex++) {
       let animateObject = this.animateObjectList[animIndex];
 
       animateObject.draw(caller, this.uniforms, this.mini_fig.requestingBuild, currentMiniFigPos);
-    }    
+    }
   }
-} 
+}
 
