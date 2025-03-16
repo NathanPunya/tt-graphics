@@ -29,8 +29,8 @@ export const external = defs.external =
 
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
-      this.treeOne = new Tree(vec3(5, .5, -5), vec3(2, 2, 2));
-      this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(1, 1, 1));
+      this.treeOne = new Tree(vec3(4, 2, -3), vec3(3, 3, 3));
+      this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(2, 2, 2));
       this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.uniforms = {
