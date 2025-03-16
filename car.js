@@ -5,6 +5,15 @@ const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } =
 import {Node, Arc} from './mini_figure.js';
 import { BuildableLego, NodeAnimated } from "./build.js";
 
+
+const red =  color(1,0,0,1);
+const green =  color(0,1,0,1);
+const blue =  color(0,0,1,1);
+const black =  color(0,0,0,1);
+const grey = color(0.5, 0.5, 0.5, 1);
+const grey2 = color(0.1, 0.1, 0.1, 1);
+const white = color(1,1,1,1);
+
 export class Car extends BuildableLego{
     constructor(rootLocation = vec3(0, 18, 0), scale = vec3(1,1,1)){
         super();
@@ -18,13 +27,7 @@ export class Car extends BuildableLego{
             wheel_connector: new defs.Shape_From_File("lego_models/car_pieces/wheel_connector/Untitled Model.obj"),
             windshield: new defs.Shape_From_File("lego_models/car_pieces/windshield/Untitled Model.obj")
         }
-        const red =  color(1,0,0,1);
-        const green =  color(0,1,0,1);
-        const blue =  color(0,0,1,1);
-        const black =  color(0,0,0,1);
-        const grey = color(0.5, 0.5, 0.5, 1);
-        const grey2 = color(0.1, 0.1, 0.1, 1);
-        const white = color(1,1,1,1);
+        
 
         const phong = new defs.Phong_Shader();
         const legoShader = new defs.Decal_Phong();
@@ -52,7 +55,19 @@ export class Car extends BuildableLego{
                 color: grey2
             }
         }
+        // Wait for all shapes to load before creating nodes:
+        Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
+        .then(() => {
+            // All shapes are ready. Now initialize the car's nodes.
+            this.initializeNodes(rootLocation, scale);
+            this._setReady(); // Notify that nodes are now ready.
+        })
+        .catch(error => console.error("Error loading shapes: ", error));
+        
+        
+    }  
 
+    initializeNodes(rootLocation, scale){
         /*
             Node class should store:
 
@@ -122,6 +137,5 @@ export class Car extends BuildableLego{
         const front_right_tire_location = front_right_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
         this.front_right_tire_node = new NodeAnimated("front_right_tire", this.shapes.tire, front_right_tire_location, this.materials.tireMat);
         this.nodes.push(this.front_right_tire_node);*/
-        
-    }  
+    }
 }
