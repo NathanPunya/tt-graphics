@@ -4,20 +4,25 @@ const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } =
 
 import { Mini_Figure } from './mini_figure.js';
 import { House, Tree,  Lamppost, Bench} from "./background.js";
+import {Car} from './car.js';
+import {HermiteSpline, Curve_Shape} from "./spline.js"
+import { MoveCamera } from "./camera.js";
+import { AnimateBuild } from "./build.js";
 
 export const external = defs.external =
   class external extends Component {
 
-    constructor(){
+    constructor() {
       super();
-      this.t_sim = 0; 
+      this.t_sim = 0;
     }
 
     init() {
       this.shapes = {
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
-        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj')
+        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
+        //car: new Shape_From_File('lego_models/car/car.obj')
       };
 
       const phong = new defs.Phong_Shader();
@@ -33,11 +38,19 @@ export const external = defs.external =
       this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(2, 2, 2));
       this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
-      this.uniforms = {
-        model_transform: Mat4.identity(),
-        projection_transform: Mat4.perspective(Math.PI / 4, 1, 1, 100),
-        lights: []
-      };
+      this.animateObjectList = [];
+
+      this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
+      this.car.onReady(()=>{
+        this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
+        this.animateObjectList.push(this.animateCar);
+      })
+      
+      this.uniforms.model_transform = Mat4.identity();
+      this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
+      this.uniforms.lights = [];
+
+      this.move_camera = new MoveCamera(this);
     }
 
     render_animation(caller) {
@@ -45,12 +58,9 @@ export const external = defs.external =
         this.animated_children.push(
           caller.controls = new Movement_Controls(this) // Uses custom movement controls
         );
-
-        Shader.assign_camera(
-          Mat4.look_at(vec3(5, 8, 25), vec3(0, 5, 0), vec3(0, 1, 0)),
-          this.uniforms
-        );
+        
       }
+      this.move_camera.render_animation(caller);
 
       // Lighting
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, caller.width / caller.height, 1, 100);
@@ -61,11 +71,13 @@ export const external = defs.external =
     }
   };
 
+
+
 export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.5; // Adjust movement speed
+    this.movement_speed = 0.25; // Adjust movement speed
     this.key_pressed = {};
 
     this.setup_key_listeners();
@@ -84,8 +96,8 @@ export class Movement_Controls extends Component {
   render_animation(caller) {
 
     let move = Mat4.identity();
-    
-    switch(true) {
+
+    switch (true) {
       case this.key_pressed["w"]:
         move.post_multiply(Mat4.translation(0, 0, -this.movement_speed)); // move forward (-z direction)
         this.main.mini_fig.move_mini_fig(move);
@@ -113,7 +125,7 @@ export class Movement_Controls extends Component {
         this.main.mini_fig.reset();
         break;
     }
-  
+
     // Draw Mini Figure with updated root transformation
     this.main.mini_fig.draw(caller, this.main.uniforms);
   }
@@ -127,6 +139,7 @@ export class main extends external {
   render_animation(caller) {
     super.render_animation(caller);
 
+
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
@@ -137,5 +150,16 @@ export class main extends external {
     this.treeOne.draw(caller, this.uniforms);
     this.lamppostOne.draw(caller, this.uniforms);
     this.benchOne.draw(caller, this.uniforms);
+    
+    //in the form of vec3
+    const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
+
+    //Loop through to handle all of the buildable objects
+    for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
+      let animateObject = this.animateObjectList[animIndex];
+
+      animateObject.draw(caller, this.uniforms, this.mini_fig.requestingBuild, currentMiniFigPos);
+    }    
   }
 } 
+

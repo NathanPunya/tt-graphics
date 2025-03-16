@@ -230,6 +230,9 @@ class Mini_Figure {
             this.body_node.children_arcs.push(this.right_hip);
             this.right_hip.set_dof(true, false, false, false, false, false); // rotation around x
 
+
+
+            this.requestingBuild = false;
     }
 
     _rec_draw(arc, matrix, webgl_manager, uniforms) {
@@ -262,6 +265,18 @@ class Mini_Figure {
         this._rec_draw(this.root, Mat4.identity(), webgl_manager, uniforms);
     }
     
+    getMiniFigPosition(){
+        let M = this.rootMat;
+        const origin = vec4(0,0,0,1);
+        const position = M.times(origin);
+
+        const x = position[0];
+        const y = position[1];
+        const z = position[2];
+
+        return vec3(x,y,z);
+    }
+
     // moves mini-fig
     move_mini_fig(move) {
         this.rootMat.post_multiply(move);
@@ -282,6 +297,9 @@ class Mini_Figure {
 
     // build animation
     build() {
+        //handle state of minifigure to pass along
+        this.requestingBuild = true;
+
         this.root.articulation_matrix = this.get_direction().times(Mat4.rotation(Math.PI / 6, 1, 0, 0));
         let angle = 0.5 * Math.sin(this.t_sim * Math.PI * 2 / 10);
         this.left_shoulder.update_articulation(angle - (Math.PI / 6));
@@ -296,6 +314,10 @@ class Mini_Figure {
 
     // positions mini-fig to rest position
     reset() {
+        if(this.requestingBuild){
+            this.requestingBuild=false;
+        }
+
         this.root.articulation_matrix = this.get_direction();
         this.left_shoulder.update_articulation(0);
         this.right_shoulder.update_articulation(0);
@@ -344,24 +366,11 @@ class Mini_Figure {
             direction_matrix = Mat4.rotation(-3 * Math.PI / 4, 0, 1, 0);
         
         return direction_matrix;
-    }
-    
+    }    
 
 }
 
-
-class Node {
-    constructor(name, shape, transform, material) {
-        this.name = name;
-        this.shape = shape;
-        this.transform_matrix = transform;
-        this.parent_arc = null;
-        this.children_arcs = [];
-        this.material = material;
-    }
-}
-
-class Arc {
+export class Arc {
     constructor(name, parent, child, location) {
         this.name = name;
         this.parent_node = parent;
@@ -400,4 +409,22 @@ class Arc {
         if(this.dof.Rz) { this.articulation_matrix.pre_multiply(Mat4.rotation(theta, 0, 0, 1)); }
     }
 
+}
+export class Node {
+    constructor(name, shape, transform, material) {
+        this.name = name;
+        this.shape = shape;
+        this.transform_matrix = transform;
+        this.parent_arc = null;
+        this.children_arcs = [];
+        this.material = material;
+    }
+}
+export class End_Effector {
+    constructor(name, parent, local_position) {
+        this.name = name;
+        this.parent = parent;
+        this.local_position = local_position;
+        this.global_position = null;
+    }
 }
