@@ -1,7 +1,6 @@
 import { tiny, defs } from "./examples/common.js";
 import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
-
 import { Mini_Figure } from './mini_figure.js';
 import { House, Tree, Lamppost, Bench, Wall, Porsche, Road, Sidewalk, SandBox } from "./background.js";
 import { Car } from './car.js';
@@ -11,7 +10,6 @@ import { AnimateBuild } from "./build.js";
 
 export const external = defs.external =
   class external extends Component {
-
     constructor() {
       super();
       this.t_sim = 0;
@@ -33,18 +31,15 @@ export const external = defs.external =
         sky: { shader: phong, ambient: 1, diffusivity: 1, specularity: 0, color: color(0, 0.3, 0.8, 1) }
       };
 
-      // Create the mini figure and add a physics velocity property.
       this.mini_fig = new Mini_Figure();
       this.mini_fig.physicsVelocity = vec3(0, 0, 0);
 
-      // Create Houses.
       this.houseOne = new House(vec3(-56, 5.2, -45), vec3(7, 7, 7));
       this.houseTwo = new House(vec3(-30, 5.2, -45), vec3(7, 7, 7));
       this.houseThree = new House(vec3(-4, 5.2, -45), vec3(7, 7, 7));
       this.houseFour = new House(vec3(22, 5.2, -45), vec3(7, 7, 7));
       this.houseFive = new House(vec3(48, 5.2, -45), vec3(7, 7, 7));
 
-      // Create Walls.
       this.wallNegativeTwo = new Wall(vec3(-59.5, 2.5, -30), vec3(4, 4, 4));
       this.wallNegativeOne = new Wall(vec3(-50.7, 2.5, -30), vec3(4, 4, 4));
       this.wallZero = new Wall(vec3(-35.1, 2.5, -30), vec3(4, 4, 4));
@@ -55,29 +50,24 @@ export const external = defs.external =
       this.wallFive = new Wall(vec3(42.9, 2.5, -30), vec3(4, 4, 4));
       this.wallSix = new Wall(vec3(58.5, 2.5, -30), vec3(4, 4, 4));
 
-      // Create Porsche.
       this.Porsche = new Porsche(vec3(50, 2.5, 10), vec3(5, 5, 5));
 
-      // Create Roads.
       this.RoadOne = new Road(vec3(-53.7, 0, 10), vec3(7, 7, 7));
       this.RoadTwo = new Road(vec3(-26.75, 0, 10), vec3(7, 7, 7));
       this.RoadThree = new Road(vec3(0.2, 0, 10), vec3(7, 7, 7));
       this.RoadFour = new Road(vec3(27.04, 0, 10), vec3(7, 7, 7));
       this.RoadFive = new Road(vec3(53.85, 0, 10), vec3(7, 7, 7));
 
-      // Create Sandbox (optional).
       this.sandbox = new SandBox(vec3(-10, -0.5, -10), vec3(3, 3, 3));
 
       this.animateObjectList = [];
 
-      // Create and animate Car.
       this.car = new Car(vec3(-20, 3, 10), vec3(1, 1, 1));
       this.car.onReady(() => {
         this.animateCar = new AnimateBuild(this.car, [-15, 0, 0, 20]);
         this.animateObjectList.push(this.animateCar);
       });
 
-      // Create and animate Trees.
       this.treeOne = new Tree(vec3(18, 1.2, -9), vec3(0.8, 0.8, 0.8), 16);
       this.treeOne.onReady(() => {
         this.animateTreeOne = new AnimateBuild(this.treeOne, [10, 25, -18, -4]);
@@ -90,21 +80,18 @@ export const external = defs.external =
         this.animateObjectList.push(this.animateTreeTwo);
       });
 
-      // Create and animate Lamppost.
       this.lamppostOne = new Lamppost(vec3(18, 3, -5), vec3(2, 2, 2));
       this.lamppostOne.onReady(() => {
         this.animateLamppost = new AnimateBuild(this.lamppostOne, [10, 20, -3, 2]);
         this.animateObjectList.push(this.animateLamppost);
       });
 
-      // Create and animate Bench.
       this.benchOne = new Bench(vec3(15, 1, -10), vec3(0.7, 0.7, 0.7));
       this.benchOne.onReady(() => {
         this.animateBench = new AnimateBuild(this.benchOne, [-3, 5, -10, 0]);
         this.animateObjectList.push(this.animateBench);
       });
 
-      // Create and animate Sidewalk.
       this.sidewalk = new Sidewalk(vec3(30, 0, -25), vec3(15, 2, 2));
       this.sidewalk.onReady(() => {
         this.animateSidewalk = new AnimateBuild(this.sidewalk, [-10, 10, -30, -20]);
@@ -118,41 +105,29 @@ export const external = defs.external =
       this.move_camera = new MoveCamera(this);
     }
 
-    // Update physics each frame.
     updatePhysics(dt) {
-      // dt is in milliseconds.
       const gravity = -0.0005 * dt;
       const bounceFactor = 0.7;
-      const groundLevel = 0;   // world ground level
-      const footOffset = 3.4;    // mini figure's feet are 1 unit below its origin
-
-      // Update vertical velocity with gravity.
+      const groundLevel = 0;
+      const footOffset = 3.4;
       this.mini_fig.physicsVelocity = vec3(
         this.mini_fig.physicsVelocity[0],
         this.mini_fig.physicsVelocity[1] + gravity,
         this.mini_fig.physicsVelocity[2]
       );
-
-      // Get current mini figure position.
       let pos = this.mini_fig.getMiniFigPosition();
-      // Update vertical position based on velocity.
       pos[1] += this.mini_fig.physicsVelocity[1] * dt;
-
-      // Bounce when hitting the ground (taking into account the foot offset).
       if (pos[1] - footOffset < groundLevel) {
         pos[1] = groundLevel + footOffset;
         if (this.mini_fig.physicsVelocity[1] < 0)
           this.mini_fig.physicsVelocity[1] = -this.mini_fig.physicsVelocity[1] * bounceFactor;
       }
-
-      // Adjust the mini figure's vertical position.
       let currentY = this.mini_fig.getMiniFigPosition()[1];
       let dy = pos[1] - currentY;
       if (Math.abs(dy) > 0.0001) {
         this.mini_fig.move_mini_fig(Mat4.translation(0, dy, 0));
       }
     }
-
 
     render_animation(caller) {
       if (!caller.controls) {
@@ -161,12 +136,8 @@ export const external = defs.external =
         );
       }
       this.move_camera.render_animation(caller);
-
-      // Update physics simulation.
-      let dt = caller.animation_delta_time || 16; // dt in milliseconds
+      let dt = caller.animation_delta_time || 16;
       this.updatePhysics(dt);
-
-      // Set up lighting.
       this.uniforms.projection_transform = Mat4.perspective(
         Math.PI / 4, caller.width / caller.height, 1, 1000
       );
@@ -174,8 +145,6 @@ export const external = defs.external =
       this.uniforms.lights = [
         defs.Phong_Shader.light_source(lightPos, color(1, 1, 1, 1), 1e6)
       ];
-
-      // Draw baseplates.
       const platformSize = 10;
       const gapFactor = 0.95;
       for (let i = -2; i <= 2; i++) {
@@ -185,23 +154,15 @@ export const external = defs.external =
           this.shapes.greenBasePlate.draw(caller, this.uniforms, transform, this.materials.lego);
         }
       }
-
-      // Draw sky.
       const sky_transform = Mat4.translation(0, 0, -70).times(Mat4.scale(120, 100, 1));
       this.shapes.box.draw(caller, this.uniforms, sky_transform, this.materials.sky);
-
-      // Draw the mini figure.
       this.mini_fig.draw(caller, this.uniforms);
-
-      // Draw environment objects.
       this.houseOne.draw(caller, this.uniforms);
       this.houseTwo.draw(caller, this.uniforms);
       this.houseThree.draw(caller, this.uniforms);
       this.houseFour.draw(caller, this.uniforms);
       this.houseFive.draw(caller, this.uniforms);
-
       this.benchOne.draw(caller, this.uniforms);
-
       this.wallNegativeTwo.draw(caller, this.uniforms);
       this.wallNegativeOne.draw(caller, this.uniforms);
       this.wallZero.draw(caller, this.uniforms);
@@ -211,16 +172,12 @@ export const external = defs.external =
       this.wallFour.draw(caller, this.uniforms);
       this.wallFive.draw(caller, this.uniforms);
       this.wallSix.draw(caller, this.uniforms);
-
       this.Porsche.draw(caller, this.uniforms);
-
       this.RoadOne.draw(caller, this.uniforms);
       this.RoadTwo.draw(caller, this.uniforms);
       this.RoadThree.draw(caller, this.uniforms);
       this.RoadFour.draw(caller, this.uniforms);
       this.RoadFive.draw(caller, this.uniforms);
-
-      // Draw any animated buildable objects.
       const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
       for (let animIndex = 0; animIndex < this.animateObjectList.length; animIndex++) {
         let animateObject = this.animateObjectList[animIndex];
@@ -233,7 +190,7 @@ export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.08;
+    this.movement_speed = 0.1;
     this.key_pressed = {};
     this.jumpInitiated = false;
     this.setup_key_listeners();
@@ -243,7 +200,6 @@ export class Movement_Controls extends Component {
     document.addEventListener("keydown", (event) => {
       this.key_pressed[event.key.toLowerCase()] = true;
     });
-
     document.addEventListener("keyup", (event) => {
       this.key_pressed[event.key.toLowerCase()] = false;
       if (event.key.toLowerCase() === "shift") {
@@ -254,21 +210,17 @@ export class Movement_Controls extends Component {
 
   render_animation(caller) {
     let move = Mat4.identity();
-
-    // Check for jump using left shift.
     if (this.key_pressed["shift"] && !this.jumpInitiated) {
       let pos = this.main.mini_fig.getMiniFigPosition();
-      if (Math.abs(pos[1] - (0 + 3.4)) < 0.01) { // Only jump if on the ground.
+      if (Math.abs(pos[1] - (0 + 3.4)) < 0.01) {
         this.main.mini_fig.physicsVelocity = vec3(
           this.main.mini_fig.physicsVelocity[0],
-          0.1, // Jump impulse; adjust as needed.
+          0.08,
           this.main.mini_fig.physicsVelocity[2]
         );
         this.jumpInitiated = true;
       }
     }
-
-    // Handle horizontal movement.
     switch (true) {
       case this.key_pressed["w"]:
         move.post_multiply(Mat4.translation(0, 0, -this.movement_speed));
@@ -297,7 +249,6 @@ export class Movement_Controls extends Component {
         this.main.mini_fig.reset();
         break;
     }
-
     this.main.mini_fig.draw(caller, this.main.uniforms);
   }
 }
