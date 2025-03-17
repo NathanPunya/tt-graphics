@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House, Tree, Lamppost, Bench } from "./background.js";
+import { House, Tree, Lamppost, Bench, Sidewalk } from "./background.js";
 import { Car } from './car.js';
 import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
@@ -38,9 +38,10 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-8,3,13), vec3(1, 1, 1));
+      
+      this.car = new Car(vec3(-20,3,13), vec3(1, 1, 1));
       this.car.onReady(()=>{
-        this.animateCar = new AnimateBuild(this.car, [-20, 0, 0, 25]);
+        this.animateCar = new AnimateBuild(this.car, [-30, -10, 0, 25]);
         this.animateObjectList.push(this.animateCar);
       })
 
@@ -60,6 +61,13 @@ export const external = defs.external =
       this.lamppostOne.onReady(()=>{
         this.animateLamppost = new AnimateBuild(this.lamppostOne, [5,12, 0, 8])
         this.animateObjectList.push(this.animateLamppost);
+      });
+      
+
+      this.sidewalk = new Sidewalk(vec3(10, 0.8, 5), vec3(2,2,2));
+      this.sidewalk.onReady(()=>{
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [10, 30, -10, 10]);
+        this.animateObjectList.push(this.animateSidewalk);
       });
 
       this.uniforms.model_transform = Mat4.identity();
@@ -173,8 +181,8 @@ export class main extends external {
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
     
-    this.benchOne.draw(caller, this.uniforms);
-
+    //this.benchOne.draw(caller, this.uniforms);
+    //this.sidewalk.draw(caller, this.uniforms);
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
 
