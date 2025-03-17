@@ -28,7 +28,6 @@ export class Car extends BuildableLego {
             windshield: new defs.Shape_From_File("lego_models/car_pieces/windshield/windshield.obj")
         }
 
-
         const phong = new defs.Phong_Shader();
         const legoShader = new defs.Decal_Phong();
 
@@ -97,28 +96,28 @@ export class Car extends BuildableLego {
         this.back_wheel_connector_node = new NodeAnimated("back_wheel_connector", this.shapes.wheel_connector, back_wheel_connector_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.back_wheel_connector_node);
 
-
-        const front_left_wheel_location = front_wheel_connector_location.times(Mat4.translation(-1.7, 0, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const wheel_height = -0.3;
+        const front_left_wheel_location = front_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
         this.front_left_wheel_node = new NodeAnimated("front_left_wheel", this.shapes.wheel, front_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_left_wheel_node);
 
-        const front_right_wheel_location = front_wheel_connector_location.times(Mat4.translation(2, 0, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const front_right_wheel_location = front_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
         this.front_right_wheel_node = new NodeAnimated("front_right_wheel", this.shapes.wheel, front_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_right_wheel_node);
 
-        const back_left_wheel_location = back_wheel_connector_location.times(Mat4.translation(-1.7, 0, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const back_left_wheel_location = back_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
         this.back_left_wheel_node = new NodeAnimated("back_left_wheel", this.shapes.wheel, back_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_left_wheel_node);
 
-        const back_right_wheel_location = back_wheel_connector_location.times(Mat4.translation(2, 0, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const back_right_wheel_location = back_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
         this.back_right_wheel_node = new NodeAnimated("back_right_wheel", this.shapes.wheel, back_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_right_wheel_node);
 
-        const flatPlate_location = base2_location.times(Mat4.translation(-1.53, 0.14, 0)).times(Mat4.scale(0.47, 0.47, 0.47)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+        const flatPlate_location = base2_location.times(Mat4.translation(-1.5, 0.14, 0)).times(Mat4.scale(0.37, 0.37, 0.37)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
         this.flatPlate_node = new NodeAnimated("flatPlate", this.shapes.flatPlate, flatPlate_location, { ...this.materials.bodyMat, color: blue });
         this.nodes.push(this.flatPlate_node);
 
-        const windshield_location = base2_location.times(Mat4.translation(-0.66, 0.41, 0)).times(Mat4.scale(0.45, 0.45, 0.45)).times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
+        const windshield_location = base2_location.times(Mat4.translation(-0.60, 0.5, 0)).times(Mat4.scale(0.4, 0.4, 0.4)).times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
         this.windshield_node = new NodeAnimated("windshield", this.shapes.windshield, windshield_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.windshield_node);
 
@@ -126,7 +125,7 @@ export class Car extends BuildableLego {
         this.topBack_node = new NodeAnimated("topBack", this.shapes.topBack, topBack_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.topBack_node);
 
-        const topBack2_location = topBack_location.times(Mat4.translation(0, 0.65, 0));
+        const topBack2_location = topBack_location.times(Mat4.translation(0, 0.67, 0));
         this.topBack2_node = new NodeAnimated("topBack2", this.shapes.topBack, topBack2_location, { ...this.materials.bodyMat, color: red });
         this.nodes.push(this.topBack2_node);
 
