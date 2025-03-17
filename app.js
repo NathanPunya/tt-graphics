@@ -83,17 +83,23 @@ export const external = defs.external =
       })
       
 
-      this.sidewalk = new Sidewalk(vec3(10, 0.3, 0), vec3(2,2,2));
+      this.sidewalk = new Sidewalk(vec3(30, 0.3, -25), vec3(15,2,2));
       this.sidewalk.onReady(()=>{
-        this.animateSidewalk = new AnimateBuild(this.sidewalk, [10, 30, 5, 20]);
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [-10, 30, -30, -15]);
         this.animateObjectList.push(this.animateSidewalk);
       });
 
-      this.sidewalkTwo = new Sidewalk(vec3(-8.3, 0.3, 0), vec3(2,2,2));
+      /*this.sidewalkTwo = new Sidewalk(vec3(-8.3, 0.3, -25), vec3(2,2,2));
       this.sidewalkTwo.onReady(() => {
-        this.animateSidewalkTwo = new AnimateBuild(this.sidewalkTwo, [-20, 0, 5, 20]);
+        this.animateSidewalkTwo = new AnimateBuild(this.sidewalkTwo, [-20, 0, -25, -5]);
         this.animateObjectList.push(this.animateSidewalkTwo);
       });
+
+      this.sidewalkThree = new Sidewalk(vec3(-26.6, 0.3, -25), vec3(2,2,2));
+      this.sidewalkThree.onReady(()=>{
+        this.animateSidwalkThree = new AnimateBuild(this.sidewalkThree, [-40, -20, -25, -5]);
+        this.animateObjectList.push(this.animateSidwalkThree);
+      })*/
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
