@@ -52,7 +52,7 @@ export const external = defs.external =
       this.wallFive = new Wall(vec3(42.9, 2.5, -30), vec3(4, 4, 4));
       this.wallSix = new Wall(vec3(58.5, 2.5, -30), vec3(4, 4, 4));
 
-      this.Porsche = new Porsche(vec3(30, 2.3, -20), vec3(5, 5, 5));
+      this.Porsche = new Porsche(vec3(50, 2.5, 10), vec3(5, 5, 5));
 
       this.RoadOne = new Road(vec3(-53.7, 0, 10), vec3(7, 7, 7));
       this.RoadTwo = new Road(vec3(-26.75, 0, 10), vec3(7, 7, 7));
@@ -224,7 +224,7 @@ export class main extends external {
     this.wallFive.draw(caller, this.uniforms);
     this.wallSix.draw(caller, this.uniforms);
 
-    // this.Porsche.draw(caller, this.uniforms);
+    this.Porsche.draw(caller, this.uniforms);
 
     this.RoadOne.draw(caller, this.uniforms);
     this.RoadTwo.draw(caller, this.uniforms);

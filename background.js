@@ -98,8 +98,8 @@ export const Porsche =
                 PorscheMat: {
                     shader: legoShader,
                     ambient: 1,
-                    diffusitivity: 0.5,
-                    specularity: 0.5,
+                    diffusitivity: 1,
+                    specularity: 1,
                     color: color(0.5, 0.5, 0.5, 1),
                 },
             }
