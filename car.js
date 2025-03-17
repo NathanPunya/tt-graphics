@@ -6,13 +6,13 @@ import { Node, Arc } from './mini_figure.js';
 import { BuildableLego, NodeAnimated } from "./build.js";
 
 
-const red = color(1, 0, 0, 1);
+const red = color(0.8, 0, 0.1, 1);
 const green = color(0, 1, 0, 1);
-const blue = color(0, 0, 1, 1);
+const blue = color(0, 0.1, 0.9, 1);
 const black = color(0, 0, 0, 1);
 const grey = color(0.5, 0.5, 0.5, 1);
 const grey2 = color(0.1, 0.1, 0.1, 1);
-const white = color(1, 1, 1, 1);
+const white = color(0.9, 0.9, 0.9, 1);
 
 export class Car extends BuildableLego {
     constructor(rootLocation = vec3(0, 18, 0), scale = vec3(1, 1, 1)) {
