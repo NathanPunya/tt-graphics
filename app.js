@@ -34,33 +34,39 @@ export const external = defs.external =
 
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -15), vec3(7, 7, 7));
-      this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
+
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-8,3,13), vec3(1, 1, 1));
-      this.car.onReady(()=>{
+      this.car = new Car(vec3(-8, 3, 13), vec3(1, 1, 1));
+      this.car.onReady(() => {
         this.animateCar = new AnimateBuild(this.car, [-20, 0, 0, 25]);
         this.animateObjectList.push(this.animateCar);
       })
 
-      this.treeOne = new Tree(vec3(18, 1.2, -9), vec3(0.8,0.8,0.8), 16);
+      this.treeOne = new Tree(vec3(18, 1.2, -9), vec3(0.8, 0.8, 0.8), 16);
       this.treeOne.onReady(() => {
         this.animateTreeOne = new AnimateBuild(this.treeOne, [10, 25, -18, -4]);
         this.animateObjectList.push(this.animateTreeOne);
       });
 
-      this.treeTwo = new Tree(vec3(-25, 1.2, -8), vec3(0.8,0.8,0.8), 11);
-      this.treeTwo.onReady(() =>{
-        this.animateTreeTwo = new AnimateBuild(this.treeTwo, [-28,-10, -15, -5]);
+      this.treeTwo = new Tree(vec3(-25, 1.2, -8), vec3(0.8, 0.8, 0.8), 11);
+      this.treeTwo.onReady(() => {
+        this.animateTreeTwo = new AnimateBuild(this.treeTwo, [-28, -10, -15, -5]);
         this.animateObjectList.push(this.animateTreeTwo);
       })
 
       this.lamppostOne = new Lamppost(vec3(8, 3, 5), vec3(2, 2, 2));
-      this.lamppostOne.onReady(()=>{
-        this.animateLamppost = new AnimateBuild(this.lamppostOne, [5,12, 0, 8])
+      this.lamppostOne.onReady(() => {
+        this.animateLamppost = new AnimateBuild(this.lamppostOne, [5, 12, 0, 8])
         this.animateObjectList.push(this.animateLamppost);
       });
+
+      this.benchOne = new Bench(vec3(8, 1, 15), vec3(0.7, 0.7, 0.7));
+      this.benchOne.onReady(() => {
+        this.animateBench = new AnimateBuild(this.benchOne, [6, 11, 10, 25]);   // minX, maxX, minY, minY
+        this.animateObjectList.push(this.animateBench);
+      })
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
@@ -172,7 +178,7 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-    
+
     this.benchOne.draw(caller, this.uniforms);
 
     //in the form of vec3
