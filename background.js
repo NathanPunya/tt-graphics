@@ -3,6 +3,10 @@ import { tiny, defs } from "./examples/common.js";
 import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
+function rgb(r, g, b, a = 1) {
+    return color(r / 255, g / 255, b / 255, a);
+}
+
 export const House =
     class House {
         constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
@@ -14,17 +18,17 @@ export const House =
             this.materials = {
                 roofMat: {
                     shader: legoShader,
-                    ambient: 1,
+                    ambient: 0,
                     diffusitivity: 0.5,
                     specularity: 0.2,
-                    color: color(1, 0.3, 0, 1)
+                    color: rgb(54, 83, 117, 1)
                 },
                 wallsMat: {
                     shader: legoShader,
-                    ambient: 1,
+                    ambient: 0.5,
                     diffusitivity: 0.5,
                     specularity: 0.2,
-                    color: color(0.4, 0.2, 0, 1),
+                    color: rgb(229, 225, 214, 1),
 
                 }
             }
@@ -57,17 +61,17 @@ export const Wall =
             this.materials = {
                 bottomMat: {
                     shader: legoShader,
-                    ambient: 1,
+                    ambient: 0.5,
                     diffusitivity: 0.5,
                     specularity: 0.5,
-                    color: color(0.66, 0.51, 0.20, 1),
+                    color: rgb(128, 103, 69, 1),
                 },
                 topMat: {
                     shader: legoShader,
-                    ambient: 1,
+                    ambient: 0,
                     diffusitivity: 0.5,
                     specularity: 0.5,
-                    color: color(0.254, 0.178, 0.09, 1),
+                    color: rgb(177, 143, 95, 1),
                 }
             }
 
@@ -143,6 +147,48 @@ export const Road =
 
         draw(webgl_manager, uniforms) {
             this.shapes.Road.draw(webgl_manager, uniforms, this.transforms.Road_transform, this.materials.RoadMat);
+        }
+    }
+
+export const SandBox =
+    class SandBox {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                sand: new defs.Shape_From_File("lego_models/sandbox/sand.obj"),
+                frame: new defs.Shape_From_File("lego_models/sandbox/frame.obj")
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                frameMat: {
+                    shader: legoShader,
+                    ambient: 0.5,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: rgb(174, 135, 102, 1),
+                },
+                sandMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: rgb(233, 225, 184, 1),
+                }
+            }
+
+            this.transforms = {
+                frameTransform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0], rootPosition[1] + 1, rootPosition[2]))
+                    .times(Mat4.scale(scale[0] * 2, scale[1] * 2, scale[2] * 2)),
+                sandTransform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0], rootPosition[1] + 0.5, rootPosition[2]))
+                    .times(Mat4.scale(scale[0] * 11.25, scale[1] * 11.25, scale[2] * 11.25))
+                // .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)),
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.frame.draw(webgl_manager, uniforms, this.transforms.frameTransform, this.materials.frameMat);
+            this.shapes.sand.draw(webgl_manager, uniforms, this.transforms.sandTransform, this.materials.sandMat);
         }
     }
 
