@@ -469,7 +469,7 @@ const Component = tiny.Component =
             div.className = "documentation_treenode";
             // Fit the existing document content to a fixed size:
             div.style.margin = "auto";
-            div.style.width = "1080px";
+            div.style.width = "1920px";
 
             this.document_region = div.appendChild(document.createElement("div"));
             this.document_region.className = "documentation";
