@@ -45,7 +45,7 @@ export class Car extends BuildableLego{
                 ambient: 1,
                 diffusivity:1,
                 specularity:1,
-                color: green,
+                color: red,
             },
             tireMat:{
                 shader: phong,
@@ -119,15 +119,15 @@ export class Car extends BuildableLego{
         this.nodes.push(this.flatPlate_node);
 
         const windshield_location = base2_location.times(Mat4.translation(-0.66, 0.41, 0)).times(Mat4.scale(0.45, 0.45, 0.45)).times(Mat4.rotation(-Math.PI/2, 0, 1,0));
-        this.windshield_node = new NodeAnimated("windshield", this.shapes.windshield, windshield_location, {...this.materials.bodyMat, color: red});
+        this.windshield_node = new NodeAnimated("windshield", this.shapes.windshield, windshield_location, {...this.materials.bodyMat, color: white});
         this.nodes.push(this.windshield_node);
 
         const topBack_location = base2_location.times(Mat4.translation(0.78, 0.45, 0)).times(Mat4.scale(0.67,0.67,0.67));
-        this.topBack_node = new NodeAnimated("topBack", this.shapes.topBack, topBack_location, {...this.materials.bodyMat, color: blue});
+        this.topBack_node = new NodeAnimated("topBack", this.shapes.topBack, topBack_location, {...this.materials.bodyMat, color: white});
         this.nodes.push(this.topBack_node);
 
         const topBack2_location = topBack_location.times(Mat4.translation(0,0.65,0));
-        this.topBack2_node = new NodeAnimated("topBack2", this.shapes.topBack, topBack2_location, {...this.materials.bodyMat, color: green});
+        this.topBack2_node = new NodeAnimated("topBack2", this.shapes.topBack, topBack2_location, {...this.materials.bodyMat, color: red});
         this.nodes.push(this.topBack2_node);
 
         /*const front_left_tire_location = front_left_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
