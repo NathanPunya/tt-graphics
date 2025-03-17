@@ -33,7 +33,7 @@ export const external = defs.external =
       };
 
       this.mini_fig = new Mini_Figure();
-      this.houseOne = new House(vec3(-4, 3.7, -15), vec3(7, 7, 7));
+      this.houseOne = new House(vec3(-4, 5, -15), vec3(10, 10, 10));
       this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.animateObjectList = [];
@@ -64,10 +64,16 @@ export const external = defs.external =
       });
       
 
-      this.sidewalk = new Sidewalk(vec3(10, 0.8, 5), vec3(2,2,2));
+      this.sidewalk = new Sidewalk(vec3(10, 0.3, 0), vec3(2,2,2));
       this.sidewalk.onReady(()=>{
-        this.animateSidewalk = new AnimateBuild(this.sidewalk, [10, 30, -10, 10]);
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [10, 30, 5, 20]);
         this.animateObjectList.push(this.animateSidewalk);
+      });
+
+      this.sidewalkTwo = new Sidewalk(vec3(-8.3, 0.3, 0), vec3(2,2,2));
+      this.sidewalkTwo.onReady(() => {
+        this.animateSidewalkTwo = new AnimateBuild(this.sidewalkTwo, [-20, 0, 5, 20]);
+        this.animateObjectList.push(this.animateSidewalkTwo);
       });
 
       this.uniforms.model_transform = Mat4.identity();

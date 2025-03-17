@@ -274,17 +274,18 @@ export const Sidewalk =
             this.pieceEleven_node = new NodeAnimated("eleven", this.shapes.sidewalk1, eleventh_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceEleven_node);
 
-            const twelfth_location = tenth_location.times(Mat4.scale(1/0.37 + 0.3, 1, 1.1)).pre_multiply(Mat4.rotation(Math.PI/2, 0, 1, 0))
-                                    .times(Mat4.translation(-4.3, 0,-5.25));
+            const twelfth_location = tenth_location.times(Mat4.scale(1/0.37 + 0.3, 1, 1.1))
+                                    .times(Mat4.translation(-4.3, 0,-5.25))
+                                    .times(Mat4.rotation(Math.PI/2, 0, 1, 0));
             this.pieceTwelve_node = new NodeAnimated("twelve", this.shapes.sidewalk1, twelfth_location, this.materials.sidewalkMat);
-            this.nodes.push(this.pieceTwelve_node);
+            //this.nodes.push(this.pieceTwelve_node);
 
             const thirtheenth_location = twelfth_location.times(Mat4.translation(1.4, 0, 8.3));
             this.pieceThirteen_node = new NodeAnimated("thirteen", this.shapes.sidewalk1, thirtheenth_location, this.materials.sidewalkMat);
-            this.nodes.push(this.pieceThirteen_node);
+            //this.nodes.push(this.pieceThirteen_node);
             
             const fourteenth_location = tenth_location.times(Mat4.translation(41, 0, -2.4));
             this.pieceFourteen_node = new NodeAnimated("fourteen", this.shapes.sidewalk1, fourteenth_location, this.materials.sidewalkMat);
-            this.nodes.push(this.pieceFourteen_node);
+            //this.nodes.push(this.pieceFourteen_node);
         }
     }
