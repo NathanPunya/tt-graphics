@@ -68,8 +68,6 @@ export const external = defs.external =
     }
   };
 
-
-
 export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
