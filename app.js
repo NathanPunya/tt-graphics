@@ -26,10 +26,12 @@ export const external = defs.external =
       };
 
       const phong = new defs.Phong_Shader();
+      const legoPhong = new defs.Decal_Phong();
       this.materials = {
         plastic: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 0.5, color: color(0.9, 0.5, 0.9, 1) },
         metal: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 1, color: color(0.1, 0.9, 0.1, 1) },
-        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color(0.007, 0.205, 0.019, 1) }
+        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color(0.007, 0.205, 0.019, 1) },
+        sky: {shader: phong, ambient: 1, diffusivity: 1, specularity: 0, color: color(0, 0.3, 0.8, 1)}
       };
 
       this.mini_fig = new Mini_Figure();
@@ -85,7 +87,7 @@ export const external = defs.external =
 
       this.sidewalk = new Sidewalk(vec3(30, 0.3, -25), vec3(15,2,2));
       this.sidewalk.onReady(()=>{
-        this.animateSidewalk = new AnimateBuild(this.sidewalk, [-10, 30, -30, -15]);
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [-15, 15, -30, -5]);
         this.animateObjectList.push(this.animateSidewalk);
       });
 
@@ -191,6 +193,8 @@ export class main extends external {
       }
     }
 
+    const sky_transform = Mat4.translation(0, 0, -70).times(Mat4.scale(120, 100, 1));
+    this.shapes.box.draw(caller, this.uniforms, sky_transform ,this.materials.sky);
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
