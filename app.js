@@ -21,7 +21,7 @@ export const external = defs.external =
       this.shapes = {
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
-        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
+        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/floor.obj'),
         //car: new Shape_From_File('lego_models/car/car.obj')
       };
 

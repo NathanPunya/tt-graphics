@@ -3,7 +3,6 @@ import {tiny} from '../tiny-graphics.js';
 const {Vector, Vector3, vec, vec3, vec4, color, Matrix, Mat4, Shape, Shader, Component} = tiny;
 
 const defs = {};
-
 export {tiny, defs};
 
 const Minimal_Webgl_Demo = defs.Minimal_Webgl_Demo =
