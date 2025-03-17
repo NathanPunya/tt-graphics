@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House, Tree, Lamppost, Bench, Wall } from "./background.js";
+import { House, Tree, Lamppost, Bench, Sidewalk } from "./background.js";
 import { Car } from './car.js';
 import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
@@ -81,6 +81,19 @@ export const external = defs.external =
         this.animateBench = new AnimateBuild(this.benchOne, [6, 11, 10, 25]);   // minX, maxX, minY, minY
         this.animateObjectList.push(this.animateBench);
       })
+      
+
+      this.sidewalk = new Sidewalk(vec3(10, 0.3, 0), vec3(2,2,2));
+      this.sidewalk.onReady(()=>{
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [10, 30, 5, 20]);
+        this.animateObjectList.push(this.animateSidewalk);
+      });
+
+      this.sidewalkTwo = new Sidewalk(vec3(-8.3, 0.3, 0), vec3(2,2,2));
+      this.sidewalkTwo.onReady(() => {
+        this.animateSidewalkTwo = new AnimateBuild(this.sidewalkTwo, [-20, 0, 5, 20]);
+        this.animateObjectList.push(this.animateSidewalkTwo);
+      });
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);

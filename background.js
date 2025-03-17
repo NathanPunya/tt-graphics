@@ -295,3 +295,94 @@ export const Bench =
             this.nodes.push(this.node_seat);
         }
     }
+
+
+export const Sidewalk = 
+    class Sidewalk extends BuildableLego{
+        constructor(rootLocation = vec3(0,0,0), scale = vec3(1,1,1)){
+            super();
+            this.shapes = {
+                sidewalk1: new defs.Shape_From_File("lego_models/sidewalk/sidewalk1.obj")
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                sidewalkMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 1,
+                    specularity: 1,
+                    color: color(0.3, 0.3, 0.3, 1)
+                }
+            }
+
+            // Wait for all shapes to load before creating nodes:
+            Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
+            .then(() => {
+                // All shapes are ready. Now initialize the car's nodes.
+                this.initializeNodes(rootLocation, scale);
+                this._setReady(); // Notify that nodes are now ready.
+            })
+            .catch(error => console.error("Error loading shapes: ", error));
+
+        }
+
+        initializeNodes(rootLocation, scale){
+            const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2]));
+            this.pieceOne_node = new NodeAnimated("first", this.shapes.sidewalk1, base_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceOne_node);
+
+            const second_location = base_location.times(Mat4.translation(0, 0,0.8)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-2.1, 0,0));
+            this.pieceTwo_node = new NodeAnimated("second", this.shapes.sidewalk1, second_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceTwo_node);
+
+            const third_location = second_location.times(Mat4.translation(4.2, 0, 0));
+            this.pieceThree_node = new NodeAnimated("third", this.shapes.sidewalk1, third_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceThree_node);
+
+            const fourth_location = base_location.times(Mat4.translation(-0.8, 0, -0.8));
+            this.pieceFour_node = new NodeAnimated("fourth", this.shapes.sidewalk1, fourth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceFour_node);
+
+            const fifth_location = base_location.times(Mat4.translation(0.8, 0, 1.6));
+            this.pieceFive_node = new NodeAnimated("fifth", this.shapes.sidewalk1, fifth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceFive_node);
+
+            const sixth_location = base_location.times(Mat4.translation(-4.2, 0, 0));
+            this.pieceSix_node = new NodeAnimated("sixth", this.shapes.sidewalk1, sixth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceSix_node);
+
+            const seventh_location = fourth_location.times(Mat4.translation(-4.2,0,0));
+            this.pieceSeven_node = new NodeAnimated("seventh", this.shapes.sidewalk1, seventh_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceSeven_node);
+
+            const eigth_location = sixth_location.times(Mat4.translation(0, 0,1.6)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-0.5, 0,0));
+            this.pieceEight_node = new NodeAnimated("eighth", this.shapes.sidewalk1, eigth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceEight_node);
+
+            const nineth_location = eigth_location.times(Mat4.translation(4.2, 0, 0));
+            this.pieceNine_node = new NodeAnimated("nineth", this.shapes.sidewalk1, nineth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceNine_node);
+
+            const tenth_location = nineth_location.times(Mat4.translation(-7.1, 0, 0)).times(Mat4.scale(0.37, 1, 1));
+            this.pieceTen_node = new NodeAnimated("tenth", this.shapes.sidewalk1, tenth_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceTen_node);
+
+            const eleventh_location = base_location.times(Mat4.translation(-4.2, 0, 0.8));
+            this.pieceEleven_node = new NodeAnimated("eleven", this.shapes.sidewalk1, eleventh_location, this.materials.sidewalkMat);
+            this.nodes.push(this.pieceEleven_node);
+
+            const twelfth_location = tenth_location.times(Mat4.scale(1/0.37 + 0.3, 1, 1.1))
+                                    .times(Mat4.translation(-4.3, 0,-5.25))
+                                    .times(Mat4.rotation(Math.PI/2, 0, 1, 0));
+            this.pieceTwelve_node = new NodeAnimated("twelve", this.shapes.sidewalk1, twelfth_location, this.materials.sidewalkMat);
+            //this.nodes.push(this.pieceTwelve_node);
+
+            const thirtheenth_location = twelfth_location.times(Mat4.translation(1.4, 0, 8.3));
+            this.pieceThirteen_node = new NodeAnimated("thirteen", this.shapes.sidewalk1, thirtheenth_location, this.materials.sidewalkMat);
+            //this.nodes.push(this.pieceThirteen_node);
+            
+            const fourteenth_location = tenth_location.times(Mat4.translation(41, 0, -2.4));
+            this.pieceFourteen_node = new NodeAnimated("fourteen", this.shapes.sidewalk1, fourteenth_location, this.materials.sidewalkMat);
+            //this.nodes.push(this.pieceFourteen_node);
+        }
+    }
