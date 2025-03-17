@@ -37,7 +37,7 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
+      this.car = new Car(vec3(-3,2,10), vec3(0.9, 0.9, 0.9));
       this.car.onReady(()=>{
         this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
         this.animateObjectList.push(this.animateCar);

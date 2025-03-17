@@ -16,7 +16,7 @@ class House{
                 ambient: 1,
                 diffusitivity: 1,
                 specularity: 1,
-                color: color(1,0,0,1)
+                color: color(1,0.3,0,1)
             },
             wallsMat:{
                 shader: legoShader,
