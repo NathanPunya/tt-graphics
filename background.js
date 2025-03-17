@@ -1,3 +1,4 @@
+import { BuildableLego, NodeAnimated } from "./build.js";
 import { tiny, defs } from "./examples/common.js";
 import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
@@ -46,8 +47,9 @@ export const House =
     }
 
 export const Tree =
-    class Tree {
-        constructor(rootPosition = vec3(1, 1, 1), scale = vec3(1, 1, 1)) {
+    class Tree extends BuildableLego{
+        constructor(rootLocation = vec3(1, 1, 1), scale = vec3(1, 1, 1)) {
+            super();
             this.shapes = {
                 leaves: new defs.Shape_From_File("lego_models/Tree/Leaves/Tree.obj"),
                 trunk: new defs.Shape_From_File("lego_models/Tree/Trunk/Tree.obj")
@@ -71,34 +73,41 @@ export const Tree =
                 }
             }
 
-            this.transforms = {
-                treeTransform: Mat4.identity()
-                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
-                    .times(Mat4.translation(rootPosition[0], rootPosition[1], rootPosition[2])),
-                leavesTransform: Mat4.translation(0, 2.7, 0),
-                trunkTransform: Mat4.identity(),
-            }
+            // Wait for all shapes to load before creating nodes:
+            Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
+            .then(() => {
+                // All shapes are ready. Now initialize the car's nodes.
+                this.initializeNodes(rootLocation, scale);
+                this._setReady(); // Notify that nodes are now ready.
+            })
+            .catch(error => console.error("Error loading shapes: ", error));
 
 
         }
+        initializeNodes(rootLocation, scale){
+            const baseLocation = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2]));
+           
+            const trunkAmount = 16;
+            for(let i = 0; i<trunkAmount; i++){
+                const trunkName = `trunk${i}`;
 
-        draw(webgl_manager, uniforms) {
-            this.shapes.leaves.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.leavesTransform), this.materials.leavesMat);
+                const trunkLocation = baseLocation.times(Mat4.translation(0, i, 0));
+                this[trunkName + "_node"] = new NodeAnimated(trunkName, this.shapes.trunk, trunkLocation, this.materials.trunkMat);
+                this.nodes.push(this[trunkName+"_node"]);
+            }
 
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
-            this.shapes.trunk.draw(webgl_manager, uniforms, this.transforms.treeTransform.times(this.transforms.trunkTransform), this.materials.trunkMat);
+            const leaveLocation = this[`trunk${trunkAmount-1}`+"_node"].end_transform_matrix.times(Mat4.translation(0, 2, 0))
+                                    .times(Mat4.scale(3, 3, 3));
+            this.leave_node = new NodeAnimated("leaves", this.shapes.leaves, leaveLocation, this.materials.leavesMat);
+            this.nodes.push(this.leave_node);
+
         }
     }
 
 export const Lamppost =
-    class Lamppost {
-        constructor(rootPosition = vec3(1, 1, 1), scale = vec3(0, 0, 0)) {
+    class Lamppost extends BuildableLego{
+        constructor(rootLocation = vec3(1, 1, 1), scale = vec3(0, 0, 0)) {
+            super();
             this.shapes = {
                 lamp: new defs.Shape_From_File("lego_models/lampost/lamp/lampost.obj"),
                 post: new defs.Shape_From_File("lego_models/lampost/post/lampost.obj")
@@ -122,22 +131,29 @@ export const Lamppost =
                 }
             }
 
-            this.transforms = {
-                lamppostTransform: Mat4.identity()
-                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
-                    .times(Mat4.translation(rootPosition[0], rootPosition[1], rootPosition[2])),
-                lampTransform: Mat4.scale(0.25, 0.25, 0.25) // scale down the lamp
-                    .times(Mat4.translation(0, 9, 0)),
-                postTransform: Mat4.identity(),
-            }
-
+            // Wait for all shapes to load before creating nodes:
+            Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
+            .then(() => {
+                // All shapes are ready. Now initialize the car's nodes.
+                this.initializeNodes(rootLocation, scale);
+                this._setReady(); // Notify that nodes are now ready.
+            })
+            .catch(error => console.error("Error loading shapes: ", error));
+            
 
         }
 
-        draw(webgl_manager, uniforms) {
-            this.shapes.lamp.draw(webgl_manager, uniforms, this.transforms.lamppostTransform.times(this.transforms.lampTransform), this.materials.lampMat);
-            this.shapes.post.draw(webgl_manager, uniforms, this.transforms.lamppostTransform.times(this.transforms.postTransform), this.materials.postMat);
+        initializeNodes(rootLocation, scale){
+            const postLocation = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2]));
+            this.post_node = new NodeAnimated("post", this.shapes.post, postLocation, this.materials.postMat);
+            this.nodes.push(this.post_node);
+
+            const lampLocation = postLocation.times(Mat4.translation(0, 2, 0)).times(Mat4.scale(0.2,0.2,0.2));
+            this.lamp_node = new NodeAnimated("lamp", this.shapes.lamp, lampLocation, this.materials.lampMat);
+            this.nodes.push(this.lamp_node);
+
         }
+
     }
 
 export const Bench =

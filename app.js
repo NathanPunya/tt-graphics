@@ -34,8 +34,6 @@ export const external = defs.external =
 
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
-      this.treeOne = new Tree(vec3(4, 2, -3), vec3(3, 3, 3));
-      this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(2, 2, 2));
       this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.animateObjectList = [];
@@ -45,6 +43,18 @@ export const external = defs.external =
         this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 20]);
         this.animateObjectList.push(this.animateCar);
       })
+
+      this.treeOne = new Tree(vec3(18, 1.2, -5), vec3(0.8,0.8,0.8));
+      this.treeOne.onReady(() => {
+        this.animateTree = new AnimateBuild(this.treeOne, [10, 25, -10, 0]);
+        this.animateObjectList.push(this.animateTree);
+      });
+
+      this.lamppostOne = new Lamppost(vec3(8, 3, 5), vec3(2, 2, 2));
+      this.lamppostOne.onReady(()=>{
+        this.animateLamppost = new AnimateBuild(this.lamppostOne, [5,12, 0, 8])
+        this.animateObjectList.push(this.animateLamppost);
+      });
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
@@ -156,8 +166,7 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-    this.treeOne.draw(caller, this.uniforms);
-    this.lamppostOne.draw(caller, this.uniforms);
+    
     this.benchOne.draw(caller, this.uniforms);
 
     //in the form of vec3
