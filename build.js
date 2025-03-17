@@ -165,6 +165,7 @@ export class AnimateBuild{
 
     }
 
+
     handleBuildState(buildRequest, minifigPos){
         const isInside = this.checkWithinBounds(minifigPos);
         switch(this.buildState){
