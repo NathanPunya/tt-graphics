@@ -87,6 +87,65 @@ export const Wall =
         }
     }
 
+export const Porsche =
+    class Porsche {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                Porsche: new defs.Shape_From_File("lego_models/car/porsche.obj"),
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                PorscheMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 1,
+                    specularity: 1,
+                    color: color(0.5, 0.5, 0.5, 1),
+                },
+            }
+
+            this.transforms = {
+                Porsche_transform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0] + 0.45, rootPosition[1], rootPosition[2]))
+                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
+                    .times(Mat4.rotation(Math.PI / 2, 0, -1, 0)),
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.Porsche.draw(webgl_manager, uniforms, this.transforms.Porsche_transform, this.materials.PorscheMat);
+        }
+    }
+
+export const Road =
+    class Road {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                Road: new defs.Shape_From_File("lego_models/road/road.obj"),
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                RoadMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: color(0.1, 0.1, 0.1, 1),
+                },
+            }
+
+            this.transforms = {
+                Road_transform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0], rootPosition[1] - 0.5, rootPosition[2]))
+                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.Road.draw(webgl_manager, uniforms, this.transforms.Road_transform, this.materials.RoadMat);
+        }
+    }
+
 export const Tree =
     class Tree extends BuildableLego {
         constructor(rootLocation = vec3(1, 1, 1), scale = vec3(1, 1, 1), treeAmount) {
@@ -188,7 +247,7 @@ export const Lamppost =
             this.post_node = new NodeAnimated("post", this.shapes.post, postLocation, this.materials.postMat);
             this.nodes.push(this.post_node);
 
-            const lampLocation = postLocation.times(Mat4.translation(0, 2, 0)).times(Mat4.scale(0.2, 0.2, 0.2));
+            const lampLocation = postLocation.times(Mat4.translation(0, 2, 0)).times(Mat4.scale(0.15, 0.15, 0.15));
             this.lamp_node = new NodeAnimated("lamp", this.shapes.lamp, lampLocation, this.materials.lampMat);
             this.nodes.push(this.lamp_node);
 
@@ -297,9 +356,9 @@ export const Bench =
     }
 
 
-export const Sidewalk = 
-    class Sidewalk extends BuildableLego{
-        constructor(rootLocation = vec3(0,0,0), scale = vec3(1,1,1)){
+export const Sidewalk =
+    class Sidewalk extends BuildableLego {
+        constructor(rootLocation = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
             super();
             this.shapes = {
                 sidewalk1: new defs.Shape_From_File("lego_models/sidewalk/sidewalk1.obj")
@@ -317,21 +376,21 @@ export const Sidewalk =
 
             // Wait for all shapes to load before creating nodes:
             Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
-            .then(() => {
-                // All shapes are ready. Now initialize the car's nodes.
-                this.initializeNodes(rootLocation, scale);
-                this._setReady(); // Notify that nodes are now ready.
-            })
-            .catch(error => console.error("Error loading shapes: ", error));
+                .then(() => {
+                    // All shapes are ready. Now initialize the car's nodes.
+                    this.initializeNodes(rootLocation, scale);
+                    this._setReady(); // Notify that nodes are now ready.
+                })
+                .catch(error => console.error("Error loading shapes: ", error));
 
         }
 
-        initializeNodes(rootLocation, scale){
+        initializeNodes(rootLocation, scale) {
             const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2]));
             this.pieceOne_node = new NodeAnimated("first", this.shapes.sidewalk1, base_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceOne_node);
 
-            const second_location = base_location.times(Mat4.translation(0, 0,0.8)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-2.1, 0,0));
+            const second_location = base_location.times(Mat4.translation(0, 0, 0.8)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-2.1, 0, 0));
             this.pieceTwo_node = new NodeAnimated("second", this.shapes.sidewalk1, second_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceTwo_node);
 
@@ -351,11 +410,11 @@ export const Sidewalk =
             this.pieceSix_node = new NodeAnimated("sixth", this.shapes.sidewalk1, sixth_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceSix_node);
 
-            const seventh_location = fourth_location.times(Mat4.translation(-4.2,0,0));
+            const seventh_location = fourth_location.times(Mat4.translation(-4.2, 0, 0));
             this.pieceSeven_node = new NodeAnimated("seventh", this.shapes.sidewalk1, seventh_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceSeven_node);
 
-            const eigth_location = sixth_location.times(Mat4.translation(0, 0,1.6)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-0.5, 0,0));
+            const eigth_location = sixth_location.times(Mat4.translation(0, 0, 1.6)).times(Mat4.scale(0.5, 1, 1)).times(Mat4.translation(-0.5, 0, 0));
             this.pieceEight_node = new NodeAnimated("eighth", this.shapes.sidewalk1, eigth_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceEight_node);
 
@@ -371,16 +430,16 @@ export const Sidewalk =
             this.pieceEleven_node = new NodeAnimated("eleven", this.shapes.sidewalk1, eleventh_location, this.materials.sidewalkMat);
             this.nodes.push(this.pieceEleven_node);
 
-            const twelfth_location = tenth_location.times(Mat4.scale(1/0.37 + 0.3, 1, 1.1))
-                                    .times(Mat4.translation(-4.3, 0,-5.25))
-                                    .times(Mat4.rotation(Math.PI/2, 0, 1, 0));
+            const twelfth_location = tenth_location.times(Mat4.scale(1 / 0.37 + 0.3, 1, 1.1))
+                .times(Mat4.translation(-4.3, 0, -5.25))
+                .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
             this.pieceTwelve_node = new NodeAnimated("twelve", this.shapes.sidewalk1, twelfth_location, this.materials.sidewalkMat);
             //this.nodes.push(this.pieceTwelve_node);
 
             const thirtheenth_location = twelfth_location.times(Mat4.translation(1.4, 0, 8.3));
             this.pieceThirteen_node = new NodeAnimated("thirteen", this.shapes.sidewalk1, thirtheenth_location, this.materials.sidewalkMat);
             //this.nodes.push(this.pieceThirteen_node);
-            
+
             const fourteenth_location = tenth_location.times(Mat4.translation(41, 0, -2.4));
             this.pieceFourteen_node = new NodeAnimated("fourteen", this.shapes.sidewalk1, fourteenth_location, this.materials.sidewalkMat);
             //this.nodes.push(this.pieceFourteen_node);
