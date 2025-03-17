@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House, Tree, Lamppost, Bench, Wall, Porsche, Road } from "./background.js";
+import { House, Tree, Lamppost, Bench, Wall, Porsche, Road, Sidewalk } from "./background.js";
 import { Car } from './car.js';
 import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
@@ -26,10 +26,12 @@ export const external = defs.external =
       };
 
       const phong = new defs.Phong_Shader();
+      const legoPhong = new defs.Decal_Phong();
       this.materials = {
         plastic: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 0.5, color: color(0.9, 0.5, 0.9, 1) },
         metal: { shader: phong, ambient: 0.2, diffusivity: 1, specularity: 1, color: color(0.1, 0.9, 0.1, 1) },
-        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color(0.007, 0.205, 0.019, 1) }
+        lego: { shader: phong, ambient: 1, diffusivity: 1, specularity: 1, color: color(0.007, 0.205, 0.019, 1) },
+        sky: { shader: phong, ambient: 1, diffusivity: 1, specularity: 0, color: color(0, 0.3, 0.8, 1) }
       };
 
       this.mini_fig = new Mini_Figure();
@@ -61,7 +63,7 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-15, 5, 10), vec3(1, 1, 1));
+      this.car = new Car(vec3(-20, 3, 10), vec3(1, 1, 1));
       this.car.onReady(() => {
         this.animateCar = new AnimateBuild(this.car, [-15, 0, 0, 20]);
         this.animateObjectList.push(this.animateCar);
@@ -73,23 +75,29 @@ export const external = defs.external =
         this.animateObjectList.push(this.animateTreeOne);
       });
 
-      this.treeTwo = new Tree(vec3(-25, 1.2, -8), vec3(0.8, 0.8, 0.8), 11);
+      this.treeTwo = new Tree(vec3(-34, 1.2, -8), vec3(0.8, 0.8, 0.8), 11);
       this.treeTwo.onReady(() => {
         this.animateTreeTwo = new AnimateBuild(this.treeTwo, [-28, -10, -15, -5]);
         this.animateObjectList.push(this.animateTreeTwo);
       })
 
-      this.lamppostOne = new Lamppost(vec3(8, 3, 5), vec3(2, 2, 2));
+      this.lamppostOne = new Lamppost(vec3(18, 3, -5), vec3(2, 2, 2));
       this.lamppostOne.onReady(() => {
-        this.animateLamppost = new AnimateBuild(this.lamppostOne, [5, 12, 0, 8])
+        this.animateLamppost = new AnimateBuild(this.lamppostOne, [10, 20, -3, 2])
         this.animateObjectList.push(this.animateLamppost);
       });
 
-      this.benchOne = new Bench(vec3(8, 1, 15), vec3(0.7, 0.7, 0.7));
+      this.benchOne = new Bench(vec3(12, 1, -10), vec3(0.7, 0.7, 0.7));
       this.benchOne.onReady(() => {
-        this.animateBench = new AnimateBuild(this.benchOne, [6, 11, 10, 25]);   // minX, maxX, minY, minY
+        this.animateBench = new AnimateBuild(this.benchOne, [-3, 5, -10, 0]);   // minX, maxX, minY, maxY
         this.animateObjectList.push(this.animateBench);
       })
+
+      this.sidewalk = new Sidewalk(vec3(30, 0, -25), vec3(15, 2, 2));
+      this.sidewalk.onReady(() => {
+        this.animateSidewalk = new AnimateBuild(this.sidewalk, [-15, 15, -30, -20]);
+        this.animateObjectList.push(this.animateSidewalk);
+      });
 
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
@@ -192,6 +200,8 @@ export class main extends external {
       }
     }
 
+    const sky_transform = Mat4.translation(0, 0, -70).times(Mat4.scale(120, 100, 1));
+    this.shapes.box.draw(caller, this.uniforms, sky_transform, this.materials.sky);
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
