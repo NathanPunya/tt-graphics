@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House, Tree, Lamppost, Bench } from "./background.js";
+import { House, Tree, Lamppost, Bench, Wall } from "./background.js";
 import { Car } from './car.js';
 import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
@@ -33,8 +33,22 @@ export const external = defs.external =
       };
 
       this.mini_fig = new Mini_Figure();
-      this.houseOne = new House(vec3(-4, 3.7, -15), vec3(7, 7, 7));
+      this.houseOne = new House(vec3(-56, 5.2, -45), vec3(7, 7, 7));
+      this.houseTwo = new House(vec3(-30, 5.2, -45), vec3(7, 7, 7));
+      this.houseThree = new House(vec3(-4, 5.2, -45), vec3(7, 7, 7));
+      this.houseFour = new House(vec3(22, 5.2, -45), vec3(7, 7, 7));
+      this.houseFive = new House(vec3(48, 5.2, -45), vec3(7, 7, 7));
 
+      //wall
+      this.wallNegativeTwo = new Wall(vec3(-59.5, 2.5, -30), vec3(4, 4, 4));
+      this.wallNegativeOne = new Wall(vec3(-50.7, 2.5, -30), vec3(4, 4, 4));
+      this.wallZero = new Wall(vec3(-35.1, 2.5, -30), vec3(4, 4, 4));
+      this.wallOne = new Wall(vec3(-19.5, 2.5, -30), vec3(4, 4, 4));
+      this.wallTwo = new Wall(vec3(-3.9, 2.5, -30), vec3(4, 4, 4));
+      this.wallThree = new Wall(vec3(11.7, 2.5, -30), vec3(4, 4, 4));
+      this.wallFour = new Wall(vec3(27.3, 2.5, -30), vec3(4, 4, 4));
+      this.wallFive = new Wall(vec3(42.9, 2.5, -30), vec3(4, 4, 4));
+      this.wallSix = new Wall(vec3(58.5, 2.5, -30), vec3(4, 4, 4));
 
       this.animateObjectList = [];
 
@@ -64,7 +78,7 @@ export const external = defs.external =
 
       this.benchOne = new Bench(vec3(8, 1, 15), vec3(0.7, 0.7, 0.7));
       this.benchOne.onReady(() => {
-        this.animateBench = new AnimateBuild(this.benchOne, [6, 15, 10, 25]);   // minX, maxX, minY, minY
+        this.animateBench = new AnimateBuild(this.benchOne, [6, 11, 10, 25]);   // minX, maxX, minY, minY
         this.animateObjectList.push(this.animateBench);
       })
 
@@ -85,7 +99,7 @@ export const external = defs.external =
       this.move_camera.render_animation(caller);
 
       // Lighting
-      this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, caller.width / caller.height, 1, 100);
+      this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, caller.width / caller.height, 1, 1000);
       const lightPos = vec4(10, 10, 10, 1);
       this.uniforms.lights = [
         defs.Phong_Shader.light_source(lightPos, color(1, 1, 1, 1), 1e6)
@@ -163,23 +177,33 @@ export class main extends external {
     const gapFactor = 0.95; // Each platform will be scaled to 95% of the cell size
     for (let i = -2; i <= 2; i++) {
       for (let j = -2; j <= 2; j++) {
-        const transform = Mat4.translation(i * platformSize, 0, j * platformSize)
+        const transform = Mat4.translation(2.68 * i * platformSize, 0, 2.68 * j * platformSize)
           .times(Mat4.scale(platformSize * gapFactor, platformSize, platformSize * gapFactor));
         this.shapes.greenBasePlate.draw(caller, this.uniforms, transform, this.materials.lego);
       }
     }
 
-
-
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
 
     // Draw environment
-    const greenBasePlate_transform = Mat4.scale(10, 10, 10);
-    this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
+    this.houseTwo.draw(caller, this.uniforms);
+    this.houseThree.draw(caller, this.uniforms);
+    this.houseFour.draw(caller, this.uniforms);
+    this.houseFive.draw(caller, this.uniforms);
 
     this.benchOne.draw(caller, this.uniforms);
+
+    this.wallNegativeTwo.draw(caller, this.uniforms);
+    this.wallNegativeOne.draw(caller, this.uniforms);
+    this.wallZero.draw(caller, this.uniforms);
+    this.wallOne.draw(caller, this.uniforms);
+    this.wallTwo.draw(caller, this.uniforms);
+    this.wallThree.draw(caller, this.uniforms);
+    this.wallFour.draw(caller, this.uniforms);
+    this.wallFive.draw(caller, this.uniforms);
+    this.wallSix.draw(caller, this.uniforms);
 
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();

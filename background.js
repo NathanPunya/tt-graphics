@@ -15,15 +15,15 @@ export const House =
                 roofMat: {
                     shader: legoShader,
                     ambient: 1,
-                    diffusitivity: 1,
-                    specularity: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.2,
                     color: color(1, 0.3, 0, 1)
                 },
                 wallsMat: {
                     shader: legoShader,
                     ambient: 1,
-                    diffusitivity: 1,
-                    specularity: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.2,
                     color: color(0.4, 0.2, 0, 1),
 
                 }
@@ -43,6 +43,47 @@ export const House =
         draw(webgl_manager, uniforms) {
             this.shapes.roof.draw(webgl_manager, uniforms, this.transforms.houseTransform.times(this.transforms.roofTransform), this.materials.roofMat);
             this.shapes.walls.draw(webgl_manager, uniforms, this.transforms.houseTransform.times(this.transforms.wallsTransform), this.materials.wallsMat);
+        }
+    }
+
+export const Wall =
+    class Wall {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                TopWall: new defs.Shape_From_File("lego_models/wall/TopWall.obj"),
+                bottomWall: new defs.Shape_From_File("lego_models/wall/bottomWall.obj")
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                bottomMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: color(0.66, 0.51, 0.20, 1),
+                },
+                topMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: color(0.254, 0.178, 0.09, 1),
+                }
+            }
+
+            this.transforms = {
+                wallsTransform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0] + 0.45, rootPosition[1], rootPosition[2]))
+                    .times(Mat4.scale(scale[0], scale[1], scale[2])),
+                TopwallsTransform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0], rootPosition[1] + 1.2, rootPosition[2]))
+                    .times(Mat4.scale(scale[0] * 0.95, scale[1] * 0.95, scale[2] * 0.95)),
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.TopWall.draw(webgl_manager, uniforms, this.transforms.TopwallsTransform, this.materials.topMat);
+            this.shapes.bottomWall.draw(webgl_manager, uniforms, this.transforms.wallsTransform, this.materials.bottomMat);
         }
     }
 
