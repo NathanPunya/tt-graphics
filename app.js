@@ -21,7 +21,7 @@ export const external = defs.external =
       this.shapes = {
         box: new defs.Cube(),
         ball: new defs.Subdivision_Sphere(4),
-        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/greenBasePlate.obj'),
+        greenBasePlate: new Shape_From_File('lego_models/greenBasePlate/floor.obj'),
         //car: new Shape_From_File('lego_models/car/car.obj')
       };
 
@@ -40,12 +40,12 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-3,2,10), vec3(0.7, 0.7, 0.7));
+      this.car = new Car(vec3(-3,2,10), vec3(0.9, 0.9, 0.9));
       this.car.onReady(()=>{
-        this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 15]);
+        this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 20]);
         this.animateObjectList.push(this.animateCar);
       })
-      
+
       this.uniforms.model_transform = Mat4.identity();
       this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, 1, 1, 100);
       this.uniforms.lights = [];
@@ -58,7 +58,7 @@ export const external = defs.external =
         this.animated_children.push(
           caller.controls = new Movement_Controls(this) // Uses custom movement controls
         );
-        
+
       }
       this.move_camera.render_animation(caller);
 
@@ -71,13 +71,11 @@ export const external = defs.external =
     }
   };
 
-
-
 export class Movement_Controls extends Component {
   constructor(main_instance) {
     super();
     this.main = main_instance;
-    this.movement_speed = 0.25; // Adjust movement speed
+    this.movement_speed = 0.08; // Adjust movement speed
     this.key_pressed = {};
 
     this.setup_key_listeners();
@@ -166,11 +164,11 @@ for (let i = -2; i <= 2; i++) {
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
 
     //Loop through to handle all of the buildable objects
-    for(let animIndex = 0; animIndex<this.animateObjectList.length; animIndex++){
+    for (let animIndex = 0; animIndex < this.animateObjectList.length; animIndex++) {
       let animateObject = this.animateObjectList[animIndex];
 
       animateObject.draw(caller, this.uniforms, this.mini_fig.requestingBuild, currentMiniFigPos);
-    }    
+    }
   }
-} 
+}
 

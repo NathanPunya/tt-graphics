@@ -6,7 +6,7 @@ export const House =
 class House{
     constructor(rootPosition = vec3(0,0,0), scale = vec3(1,1,1)){
         this.shapes = {
-            roof: new defs.Shape_From_File("lego_models/background_house/roof/background_house.obj"),
+            roof: new defs.Shape_From_File("lego_models/background_house/roof/roof.obj"),
             walls: new defs.Shape_From_File("lego_models/background_house/walls/background_house.obj")
         }
         const legoShader = new defs.Decal_Phong();
@@ -16,7 +16,7 @@ class House{
                 ambient: 1,
                 diffusitivity: 1,
                 specularity: 1,
-                color: color(1,0,0,1)
+                color: color(1,0.3,0,1)
             },
             wallsMat:{
                 shader: legoShader,
