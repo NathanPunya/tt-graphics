@@ -64,7 +64,7 @@ export const external = defs.external =
 
       this.benchOne = new Bench(vec3(8, 1, 15), vec3(0.7, 0.7, 0.7));
       this.benchOne.onReady(() => {
-        this.animateBench = new AnimateBuild(this.benchOne, [6, 11, 10, 25]);   // minX, maxX, minY, minY
+        this.animateBench = new AnimateBuild(this.benchOne, [6, 15, 10, 25]);   // minX, maxX, minY, minY
         this.animateObjectList.push(this.animateBench);
       })
 
