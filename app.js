@@ -33,22 +33,28 @@ export const external = defs.external =
       };
 
       this.mini_fig = new Mini_Figure();
-      this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
+      this.houseOne = new House(vec3(-4, 3.7, -15), vec3(7, 7, 7));
       this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-3,3,10), vec3(1, 1, 1));
+      this.car = new Car(vec3(-8,3,13), vec3(1, 1, 1));
       this.car.onReady(()=>{
-        this.animateCar = new AnimateBuild(this.car, [-20, 0, -5, 20]);
+        this.animateCar = new AnimateBuild(this.car, [-20, 0, 0, 25]);
         this.animateObjectList.push(this.animateCar);
       })
 
-      this.treeOne = new Tree(vec3(18, 1.2, -5), vec3(0.8,0.8,0.8));
+      this.treeOne = new Tree(vec3(18, 1.2, -9), vec3(0.8,0.8,0.8), 16);
       this.treeOne.onReady(() => {
-        this.animateTree = new AnimateBuild(this.treeOne, [10, 25, -10, 0]);
-        this.animateObjectList.push(this.animateTree);
+        this.animateTreeOne = new AnimateBuild(this.treeOne, [10, 25, -18, -4]);
+        this.animateObjectList.push(this.animateTreeOne);
       });
+
+      this.treeTwo = new Tree(vec3(-25, 1.2, -8), vec3(0.8,0.8,0.8), 11);
+      this.treeTwo.onReady(() =>{
+        this.animateTreeTwo = new AnimateBuild(this.treeTwo, [-28,-10, -15, -5]);
+        this.animateObjectList.push(this.animateTreeTwo);
+      })
 
       this.lamppostOne = new Lamppost(vec3(8, 3, 5), vec3(2, 2, 2));
       this.lamppostOne.onReady(()=>{

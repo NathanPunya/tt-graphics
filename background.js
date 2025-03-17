@@ -48,7 +48,7 @@ export const House =
 
 export const Tree =
     class Tree extends BuildableLego{
-        constructor(rootLocation = vec3(1, 1, 1), scale = vec3(1, 1, 1)) {
+        constructor(rootLocation = vec3(1, 1, 1), scale = vec3(1, 1, 1), treeAmount) {
             super();
             this.shapes = {
                 leaves: new defs.Shape_From_File("lego_models/Tree/Leaves/Tree.obj"),
@@ -77,17 +77,16 @@ export const Tree =
             Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
             .then(() => {
                 // All shapes are ready. Now initialize the car's nodes.
-                this.initializeNodes(rootLocation, scale);
+                this.initializeNodes(rootLocation, scale, treeAmount);
                 this._setReady(); // Notify that nodes are now ready.
             })
             .catch(error => console.error("Error loading shapes: ", error));
 
 
         }
-        initializeNodes(rootLocation, scale){
+        initializeNodes(rootLocation, scale, trunkAmount){
             const baseLocation = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2]));
-           
-            const trunkAmount = 16;
+        
             for(let i = 0; i<trunkAmount; i++){
                 const trunkName = `trunk${i}`;
 
