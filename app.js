@@ -139,6 +139,17 @@ export class main extends external {
   render_animation(caller) {
     super.render_animation(caller);
 
+const platformSize = 10;
+const gapFactor = 0.95; // Each platform will be scaled to 95% of the cell size
+for (let i = -2; i <= 2; i++) {
+  for (let j = -2; j <= 2; j++) {
+    const transform = Mat4.translation(i * platformSize, 0, j * platformSize)
+                       .times(Mat4.scale(platformSize * gapFactor, platformSize, platformSize * gapFactor));
+    this.shapes.greenBasePlate.draw(caller, this.uniforms, transform, this.materials.lego);
+  }
+}
+
+
 
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
