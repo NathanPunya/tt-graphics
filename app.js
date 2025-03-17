@@ -3,9 +3,9 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House } from "./background.js";
-import { Car } from './car.js';
-import { HermiteSpline, Curve_Shape } from "./spline.js"
+import { House, Tree,  Lamppost, Bench} from "./background.js";
+import {Car} from './car.js';
+import {HermiteSpline, Curve_Shape} from "./spline.js"
 import { MoveCamera } from "./camera.js";
 import { AnimateBuild } from "./build.js";
 
@@ -34,6 +34,9 @@ export const external = defs.external =
 
       this.mini_fig = new Mini_Figure();
       this.houseOne = new House(vec3(-4, 3.7, -10), vec3(7, 7, 7));
+      this.treeOne = new Tree(vec3(4, 2, -3), vec3(3, 3, 3));
+      this.lamppostOne = new Lamppost(vec3(5, 2, 5), vec3(2, 2, 2));
+      this.benchOne = new Bench(vec3(-4, 1, 4), vec3(1, 1, 1));
 
       this.animateObjectList = [];
 
@@ -134,6 +137,17 @@ export class main extends external {
   render_animation(caller) {
     super.render_animation(caller);
 
+const platformSize = 10;
+const gapFactor = 0.95; // Each platform will be scaled to 95% of the cell size
+for (let i = -2; i <= 2; i++) {
+  for (let j = -2; j <= 2; j++) {
+    const transform = Mat4.translation(i * platformSize, 0, j * platformSize)
+                       .times(Mat4.scale(platformSize * gapFactor, platformSize, platformSize * gapFactor));
+    this.shapes.greenBasePlate.draw(caller, this.uniforms, transform, this.materials.lego);
+  }
+}
+
+
 
     // Draw Mini Figure with updated transformation
     this.mini_fig.draw(caller, this.uniforms);
@@ -142,7 +156,10 @@ export class main extends external {
     const greenBasePlate_transform = Mat4.scale(10, 10, 10);
     this.shapes.greenBasePlate.draw(caller, this.uniforms, greenBasePlate_transform, this.materials.lego);
     this.houseOne.draw(caller, this.uniforms);
-
+    this.treeOne.draw(caller, this.uniforms);
+    this.lamppostOne.draw(caller, this.uniforms);
+    this.benchOne.draw(caller, this.uniforms);
+    
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();
 
