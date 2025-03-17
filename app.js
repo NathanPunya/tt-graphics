@@ -106,7 +106,7 @@ export const external = defs.external =
     }
 
     updatePhysics(dt) {
-      const gravity = -0.0005 * dt;
+      const gravity = -0.0001 * dt;
       const bounceFactor = 0.7;
       const groundLevel = 0;
       const footOffset = 3.4;
