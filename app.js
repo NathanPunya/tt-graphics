@@ -3,7 +3,7 @@ import { Shape_From_File } from "./examples/obj-file-demo.js";
 const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } = tiny;
 
 import { Mini_Figure } from './mini_figure.js';
-import { House, Tree, Lamppost, Bench, Wall } from "./background.js";
+import { House, Tree, Lamppost, Bench, Wall, Porsche, Road } from "./background.js";
 import { Car } from './car.js';
 import { HermiteSpline, Curve_Shape } from "./spline.js"
 import { MoveCamera } from "./camera.js";
@@ -50,11 +50,20 @@ export const external = defs.external =
       this.wallFive = new Wall(vec3(42.9, 2.5, -30), vec3(4, 4, 4));
       this.wallSix = new Wall(vec3(58.5, 2.5, -30), vec3(4, 4, 4));
 
+      this.Porsche = new Porsche(vec3(30, 2.3, -20), vec3(5, 5, 5));
+
+      this.RoadOne = new Road(vec3(-53.7, 0, 10), vec3(7, 7, 7));
+      this.RoadTwo = new Road(vec3(-26.75, 0, 10), vec3(7, 7, 7));
+      this.RoadThree = new Road(vec3(0.2, 0, 10), vec3(7, 7, 7));
+      this.RoadFour = new Road(vec3(27.04, 0, 10), vec3(7, 7, 7));
+      this.RoadFive = new Road(vec3(53.85, 0, 10), vec3(7, 7, 7));
+      this.RoadSix = new Road(vec3(10, 0, 10), vec3(7, 7, 7));
+
       this.animateObjectList = [];
 
-      this.car = new Car(vec3(-8, 3, 13), vec3(1, 1, 1));
+      this.car = new Car(vec3(-15, 5, 10), vec3(1, 1, 1));
       this.car.onReady(() => {
-        this.animateCar = new AnimateBuild(this.car, [-20, 0, 0, 25]);
+        this.animateCar = new AnimateBuild(this.car, [-15, 0, 0, 20]);
         this.animateObjectList.push(this.animateCar);
       })
 
@@ -204,6 +213,14 @@ export class main extends external {
     this.wallFour.draw(caller, this.uniforms);
     this.wallFive.draw(caller, this.uniforms);
     this.wallSix.draw(caller, this.uniforms);
+
+    // this.Porsche.draw(caller, this.uniforms);
+
+    this.RoadOne.draw(caller, this.uniforms);
+    this.RoadTwo.draw(caller, this.uniforms);
+    this.RoadThree.draw(caller, this.uniforms);
+    this.RoadFour.draw(caller, this.uniforms);
+    this.RoadFive.draw(caller, this.uniforms);
 
     //in the form of vec3
     const currentMiniFigPos = this.mini_fig.getMiniFigPosition();

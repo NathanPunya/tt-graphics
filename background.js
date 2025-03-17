@@ -87,6 +87,65 @@ export const Wall =
         }
     }
 
+export const Porsche =
+    class Porsche {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                Porsche: new defs.Shape_From_File("lego_models/car/porsche.obj"),
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                PorscheMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: color(0.5, 0.5, 0.5, 1),
+                },
+            }
+
+            this.transforms = {
+                Porsche_transform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0] + 0.45, rootPosition[1], rootPosition[2]))
+                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
+                    .times(Mat4.rotation(Math.PI / 2, 0, -1, 0)),
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.Porsche.draw(webgl_manager, uniforms, this.transforms.Porsche_transform, this.materials.PorscheMat);
+        }
+    }
+
+export const Road =
+    class Road {
+        constructor(rootPosition = vec3(0, 0, 0), scale = vec3(1, 1, 1)) {
+            this.shapes = {
+                Road: new defs.Shape_From_File("lego_models/road/road.obj"),
+            }
+            const legoShader = new defs.Decal_Phong();
+            this.materials = {
+                RoadMat: {
+                    shader: legoShader,
+                    ambient: 1,
+                    diffusitivity: 0.5,
+                    specularity: 0.5,
+                    color: color(0.1, 0.1, 0.1, 1),
+                },
+            }
+
+            this.transforms = {
+                Road_transform: Mat4.identity()
+                    .times(Mat4.translation(rootPosition[0], rootPosition[1] - 0.5, rootPosition[2]))
+                    .times(Mat4.scale(scale[0], scale[1], scale[2]))
+            }
+        }
+
+        draw(webgl_manager, uniforms) {
+            this.shapes.Road.draw(webgl_manager, uniforms, this.transforms.Road_transform, this.materials.RoadMat);
+        }
+    }
+
 export const Tree =
     class Tree extends BuildableLego {
         constructor(rootLocation = vec3(1, 1, 1), scale = vec3(1, 1, 1), treeAmount) {
