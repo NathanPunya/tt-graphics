@@ -107,7 +107,7 @@ export const external = defs.external =
 
     updatePhysics(dt) {
       const gravity = -0.0001 * dt;
-      const bounceFactor = 0.7;
+      const bounceFactor = 0.4;
       const groundLevel = 0;
       const footOffset = 3.4;
       this.mini_fig.physicsVelocity = vec3(
@@ -215,7 +215,7 @@ export class Movement_Controls extends Component {
       if (Math.abs(pos[1] - (0 + 3.4)) < 0.01) {
         this.main.mini_fig.physicsVelocity = vec3(
           this.main.mini_fig.physicsVelocity[0],
-          0.08,
+          0.034,
           this.main.mini_fig.physicsVelocity[2]
         );
         this.jumpInitiated = true;

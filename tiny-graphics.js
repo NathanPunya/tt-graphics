@@ -396,7 +396,7 @@ const Component = tiny.Component =
                 || w.mozRequestAnimationFrame || w.oRequestAnimationFrame || w.msRequestAnimationFrame
                 || function (callback) { w.setTimeout(callback, 1000 / 60); })(window);
         }
-        set_canvas_size(dimensions = [1920, 1080]) {
+        set_canvas_size(dimensions = [1080, 750]) {
             // We must change size in CSS, wait for style re-flow, and then change size again within canvas attributes.
             // Both steps are needed; attributes on a canvas have a special effect on buffers, separate from their style.
             const [width, height] = dimensions;
@@ -469,7 +469,7 @@ const Component = tiny.Component =
             div.className = "documentation_treenode";
             // Fit the existing document content to a fixed size:
             div.style.margin = "auto";
-            div.style.width = "1920px";
+            div.style.width = "1080px";
 
             this.document_region = div.appendChild(document.createElement("div"));
             this.document_region.className = "documentation";
@@ -487,7 +487,7 @@ const Component = tiny.Component =
             // TODO:  One use case may have required canvas to be styled as a rule instead of as an element.  Keep an
             // eye out.
             const canvas = this.program_stuff.appendChild(document.createElement("canvas"));
-            canvas.style = `width:1080px; height:600px; background:DimGray; margin:auto; margin-bottom:-4px`;
+            canvas.style = `width:1080px; height:750px; background:DimGray; margin:auto; margin-bottom:-4px`;
 
             if (!overridden_options.show_canvas)
                 canvas.style.display = "none";
