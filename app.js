@@ -34,6 +34,7 @@ export const external = defs.external =
       this.mini_fig = new Mini_Figure();
       this.mini_fig.physicsVelocity = vec3(0, 0, 0);
 
+      // Ensure that these objects store their starting position and scale!
       this.houseOne = new House(vec3(-56, 5.2, -45), vec3(7, 7, 7));
       this.houseTwo = new House(vec3(-30, 5.2, -45), vec3(7, 7, 7));
       this.houseThree = new House(vec3(-4, 5.2, -45), vec3(7, 7, 7));
@@ -62,6 +63,7 @@ export const external = defs.external =
 
       this.animateObjectList = [];
 
+      // For the car, ensure its class sets "position" and "scale".
       this.car = new Car(vec3(-20, 3, 10), vec3(1, 1, 1));
       this.car.onReady(() => {
         this.animateCar = new AnimateBuild(this.car, [-15, 0, 0, 20]);
@@ -210,29 +212,78 @@ export class Movement_Controls extends Component {
     });
   }
 
+  // Updated collision detection using a bounding-circle approximation.
+  // It logs a warning if an obstacle lacks a valid position.
+  checkCollisions(candidatePos) {
+    let miniRadius = 1; // Approximate radius for the mini-figure.
+    let obstacles = [
+      this.main.houseOne, this.main.houseTwo, this.main.houseThree,
+      this.main.houseFour, this.main.houseFive,
+      this.main.treeOne, this.main.treeTwo,
+      this.main.wallNegativeTwo, this.main.wallNegativeOne,
+      this.main.wallZero, this.main.wallOne, this.main.wallTwo,
+      this.main.wallThree, this.main.wallFour, this.main.wallFive,
+      this.main.wallSix,
+      this.main.benchOne,
+      this.main.Porsche,
+      this.main.lamppostOne,
+      this.main.sidewalk,
+      this.main.car
+    ];
+
+    for (let obstacle of obstacles) {
+      // If the obstacle uses an "isBuilt" flag and it's false, skip collision check.
+      if ("isBuilt" in obstacle && !obstacle.isBuilt) continue;
+      // Get the obstacle's position.
+      let pos = obstacle.position || (obstacle.getPosition ? obstacle.getPosition() : null);
+      if (!pos) {
+        console.warn("Obstacle missing a position property:", obstacle);
+        continue;
+      }
+      let dx = candidatePos[0] - pos[0];
+      let dz = candidatePos[2] - pos[2];
+      let distance = Math.sqrt(dx * dx + dz * dz);
+      // Use half the obstacle's x scale as a rough collision radius.
+      let obstacleRadius = (obstacle.boundingRadius !== undefined)
+        ? obstacle.boundingRadius
+        : (obstacle.scale ? obstacle.scale[0] * 0.5 : 2);
+
+
+      if (distance < miniRadius + obstacleRadius) {
+        return true; // Collision detected.
+      }
+    }
+    return false;
+  }
+
   render_animation(caller) {
-    // Sum movement contributions from W, A, S, D for diagonal movement.
+    // Sum movement contributions from W, A, S, D.
     let dx = 0, dz = 0;
     if (this.key_pressed["w"]) dz -= this.movement_speed;
     if (this.key_pressed["s"]) dz += this.movement_speed;
     if (this.key_pressed["a"]) dx -= this.movement_speed;
     if (this.key_pressed["d"]) dx += this.movement_speed;
 
-    // If there is movement and the build key is not pressed, move the mini-figure.
+    // If moving (and not building with "x"), compute the candidate new position.
     if ((dx !== 0 || dz !== 0) && !this.key_pressed["x"]) {
-      let move = Mat4.translation(dx, 0, dz);
-      this.main.mini_fig.move_mini_fig(move);
-      let len = Math.sqrt(dx * dx + dz * dz);
-      this.main.mini_fig.direction = [dx / len, dz / len];
+      let candidatePos = this.main.mini_fig.getMiniFigPosition().slice();
+      candidatePos[0] += dx;
+      candidatePos[2] += dz;
+      // Only move if no collision is detected.
+      if (!this.checkCollisions(candidatePos)) {
+        let move = Mat4.translation(dx, 0, dz);
+        this.main.mini_fig.move_mini_fig(move);
+        let len = Math.sqrt(dx * dx + dz * dz);
+        this.main.mini_fig.direction = [dx / len, dz / len];
+      }
     } else if (!this.key_pressed["x"]) {
-      // Only reset when not moving and not building.
       this.main.mini_fig.reset();
     }
-    // Build animation: When "x" is pressed, trigger build (this is independent of movement).
+    // Build animation: When "x" is pressed, trigger build.
     if (this.key_pressed["x"]) {
       this.main.mini_fig.build();
     }
-    // Jump logic remains unchanged.
+    // Jump logic.
     if (this.key_pressed["shift"] && !this.jumpInitiated) {
       let pos = this.main.mini_fig.getMiniFigPosition();
       if (Math.abs(pos[1] - 3.4) < 0.01) {

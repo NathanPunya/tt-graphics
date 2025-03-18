@@ -5,7 +5,6 @@ const { vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component } =
 import { Node, Arc } from './mini_figure.js';
 import { BuildableLego, NodeAnimated } from "./build.js";
 
-
 const red = color(0.8, 0, 0.1, 1);
 const green = color(0, 1, 0, 1);
 const blue = color(0, 0.1, 0.9, 1);
@@ -17,6 +16,16 @@ const white = color(0.9, 0.9, 0.9, 1);
 export class Car extends BuildableLego {
     constructor(rootLocation = vec3(0, 18, 0), scale = vec3(1, 1, 1)) {
         super();
+        // Store the starting position.
+        this.position = rootLocation;
+        // Note: The car is scaled by an additional factor (3,3,3) in initializeNodes.
+        // You can update this.scale if you wish to reflect the final built dimensions.
+        this.scale = scale;
+
+        // Define a custom bounding radius for collision detection.
+        // Adjust this value to suit the final size of your built car.
+        this.boundingRadius = 5.0;
+
         this.shapes = {
             base: new defs.Shape_From_File("lego_models/car_pieces/base/base.obj"),
             flatPlate: new defs.Shape_From_File("lego_models/car_pieces/flatPlate/flatPlate.obj"),
@@ -26,7 +35,7 @@ export class Car extends BuildableLego {
             wheel: new defs.Shape_From_File("lego_models/car_pieces/wheel/wheel.obj"),
             wheel_connector: new defs.Shape_From_File("lego_models/car_pieces/wheel_connector/wheel_connector.obj"),
             windshield: new defs.Shape_From_File("lego_models/car_pieces/windshield/windshield.obj")
-        }
+        };
 
         const phong = new defs.Phong_Shader();
         const legoShader = new defs.Decal_Phong();
@@ -53,30 +62,34 @@ export class Car extends BuildableLego {
                 specularity: 1,
                 color: grey2
             }
-        }
-        // Wait for all shapes to load before creating nodes:
+        };
+
+        // Wait for all shapes to load before creating nodes.
         Promise.all(Object.values(this.shapes).map(shape => shape.loadPromise))
             .then(() => {
                 // All shapes are ready. Now initialize the car's nodes.
                 this.initializeNodes(rootLocation, scale);
+                // Mark the car as built so collision detection will use it.
+                this.isBuilt = true;
                 this._setReady(); // Notify that nodes are now ready.
             })
             .catch(error => console.error("Error loading shapes: ", error));
+    }
 
-
+    // Optional getter for collision detection
+    getPosition() {
+        return this.position;
     }
 
     initializeNodes(rootLocation, scale) {
         /*
-            Node class should store:
-
-            Scaling and rotation of the piece
-            Position of the piece
-
-            Problem is everything is based off of base_location and its scale/rotations/positions
-
+            The nodes represent the different parts of the car.
+            Note that we build the car based on a base location that is
+            scaled by the given scale and then multiplied by an extra factor.
         */
-        const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2]).times(Mat4.scale(scale[0], scale[1], scale[2])).times(Mat4.scale(3, 3, 3));
+        const base_location = Mat4.translation(rootLocation[0], rootLocation[1], rootLocation[2])
+            .times(Mat4.scale(scale[0], scale[1], scale[2]))
+            .times(Mat4.scale(3, 3, 3));
         this.base_node = new NodeAnimated("base", this.shapes.base, base_location, this.materials.bodyMat);
         this.nodes.push(this.base_node);
 
@@ -90,38 +103,47 @@ export class Car extends BuildableLego {
         this.front_wheel_connector_node = new NodeAnimated("front_wheel_connector", this.shapes.wheel_connector, front_wheel_connector_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.front_wheel_connector_node);
 
-
         const back_wheel_connector_location = base_location.times(Mat4.translation(1.5, -0.40, 0))
-            .times(Mat4.scale(0.6, 0.6, 0.6)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+            .times(Mat4.scale(0.6, 0.6, 0.6))
+            .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
         this.back_wheel_connector_node = new NodeAnimated("back_wheel_connector", this.shapes.wheel_connector, back_wheel_connector_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.back_wheel_connector_node);
 
         const wheel_height = -0.3;
-        const front_left_wheel_location = front_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const front_left_wheel_location = front_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0))
+            .times(Mat4.scale(0.5, 0.5, 0.5));
         this.front_left_wheel_node = new NodeAnimated("front_left_wheel", this.shapes.wheel, front_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_left_wheel_node);
 
-        const front_right_wheel_location = front_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const front_right_wheel_location = front_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0))
+            .times(Mat4.scale(0.5, 0.5, 0.5));
         this.front_right_wheel_node = new NodeAnimated("front_right_wheel", this.shapes.wheel, front_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.front_right_wheel_node);
 
-        const back_left_wheel_location = back_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const back_left_wheel_location = back_wheel_connector_location.times(Mat4.translation(-1.7, wheel_height, 0))
+            .times(Mat4.scale(0.5, 0.5, 0.5));
         this.back_left_wheel_node = new NodeAnimated("back_left_wheel", this.shapes.wheel, back_left_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_left_wheel_node);
 
-        const back_right_wheel_location = back_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0)).times(Mat4.scale(0.5, 0.5, 0.5));
+        const back_right_wheel_location = back_wheel_connector_location.times(Mat4.translation(2, wheel_height, 0))
+            .times(Mat4.scale(0.5, 0.5, 0.5));
         this.back_right_wheel_node = new NodeAnimated("back_right_wheel", this.shapes.wheel, back_right_wheel_location, this.materials.wheelMat);
         this.nodes.push(this.back_right_wheel_node);
 
-        const flatPlate_location = base2_location.times(Mat4.translation(-1.5, 0.14, 0)).times(Mat4.scale(0.37, 0.37, 0.37)).times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+        const flatPlate_location = base2_location.times(Mat4.translation(-1.5, 0.14, 0))
+            .times(Mat4.scale(0.37, 0.37, 0.37))
+            .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
         this.flatPlate_node = new NodeAnimated("flatPlate", this.shapes.flatPlate, flatPlate_location, { ...this.materials.bodyMat, color: blue });
         this.nodes.push(this.flatPlate_node);
 
-        const windshield_location = base2_location.times(Mat4.translation(-0.60, 0.5, 0)).times(Mat4.scale(0.4, 0.4, 0.4)).times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
+        const windshield_location = base2_location.times(Mat4.translation(-0.60, 0.5, 0))
+            .times(Mat4.scale(0.4, 0.4, 0.4))
+            .times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
         this.windshield_node = new NodeAnimated("windshield", this.shapes.windshield, windshield_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.windshield_node);
 
-        const topBack_location = base2_location.times(Mat4.translation(0.78, 0.45, 0)).times(Mat4.scale(0.67, 0.67, 0.67));
+        const topBack_location = base2_location.times(Mat4.translation(0.78, 0.45, 0))
+            .times(Mat4.scale(0.67, 0.67, 0.67));
         this.topBack_node = new NodeAnimated("topBack", this.shapes.topBack, topBack_location, { ...this.materials.bodyMat, color: white });
         this.nodes.push(this.topBack_node);
 
@@ -129,12 +151,15 @@ export class Car extends BuildableLego {
         this.topBack2_node = new NodeAnimated("topBack2", this.shapes.topBack, topBack2_location, { ...this.materials.bodyMat, color: red });
         this.nodes.push(this.topBack2_node);
 
-        /*const front_left_tire_location = front_left_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
+        // Uncomment and adjust if you want to add tire nodes:
+        /*
+        const front_left_tire_location = front_left_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
         this.front_left_tire_node = new NodeAnimated("front_left_tire", this.shapes.tire, front_left_tire_location, this.materials.tireMat);
         this.nodes.push(this.front_left_tire_node);
 
         const front_right_tire_location = front_right_wheel_location.times(Mat4.scale(2.15,2.15,2.15));
         this.front_right_tire_node = new NodeAnimated("front_right_tire", this.shapes.tire, front_right_tire_location, this.materials.tireMat);
-        this.nodes.push(this.front_right_tire_node);*/
+        this.nodes.push(this.front_right_tire_node);
+        */
     }
 }
