@@ -107,7 +107,7 @@ export const external = defs.external =
 
     updatePhysics(dt) {
       const gravity = -0.0001 * dt;
-      const bounceFactor = 0.4;
+      const bounceFactor = 0.7;
       const groundLevel = 0;
       const footOffset = 3.4;
       this.mini_fig.physicsVelocity = vec3(
@@ -198,18 +198,40 @@ export class Movement_Controls extends Component {
 
   setup_key_listeners() {
     document.addEventListener("keydown", (event) => {
-      this.key_pressed[event.key.toLowerCase()] = true;
+      let key = event.key.toLowerCase();
+      this.key_pressed[key] = true;
     });
     document.addEventListener("keyup", (event) => {
-      this.key_pressed[event.key.toLowerCase()] = false;
-      if (event.key.toLowerCase() === "shift") {
+      let key = event.key.toLowerCase();
+      this.key_pressed[key] = false;
+      if (key === "shift") {
         this.jumpInitiated = false;
       }
     });
   }
 
   render_animation(caller) {
-    let move = Mat4.identity();
+    // Sum movement contributions from W, A, S, D for diagonal movement.
+    let dx = 0, dz = 0;
+    if (this.key_pressed["w"]) dz -= this.movement_speed;
+    if (this.key_pressed["s"]) dz += this.movement_speed;
+    if (this.key_pressed["a"]) dx -= this.movement_speed;
+    if (this.key_pressed["d"]) dx += this.movement_speed;
+
+    // If there is movement and the build key is not pressed, move the mini-figure.
+    if ((dx !== 0 || dz !== 0) && !this.key_pressed["x"]) {
+      let move = Mat4.translation(dx, 0, dz);
+      this.main.mini_fig.move_mini_fig(move);
+      let len = Math.sqrt(dx * dx + dz * dz);
+      this.main.mini_fig.direction = [dx / len, dz / len];
+    } else if (!this.key_pressed["x"]) {
+      // Only reset when not moving and not building.
+      this.main.mini_fig.reset();
+    }
+    // Build animation: When "x" is pressed, trigger build (this is independent of movement).
+    if (this.key_pressed["x"]) {
+      this.main.mini_fig.build();
+    }
     // Jump logic remains unchanged.
     if (this.key_pressed["shift"] && !this.jumpInitiated) {
       let pos = this.main.mini_fig.getMiniFigPosition();
@@ -222,26 +244,6 @@ export class Movement_Controls extends Component {
         this.jumpInitiated = true;
       }
     }
-    // Sum movement contributions from keys:
-    let dx = 0, dz = 0;
-    if (this.key_pressed["w"]) dz -= this.movement_speed;
-    if (this.key_pressed["s"]) dz += this.movement_speed;
-    if (this.key_pressed["a"]) dx -= this.movement_speed;
-    if (this.key_pressed["d"]) dx += this.movement_speed;
-
-    if (dx !== 0 || dz !== 0) {
-      move.post_multiply(Mat4.translation(dx, 0, dz));
-      this.main.mini_fig.move_mini_fig(move);
-      let len = Math.sqrt(dx * dx + dz * dz);
-      this.main.mini_fig.direction = [dx / len, dz / len];
-    } else {
-      // When no key is pressed, reset the mini-figure animation to idle.
-      this.main.mini_fig.reset();
-    }
-    // If build key is pressed:
-    if (this.key_pressed["x"]) {
-      this.main.mini_fig.build();
-    }
     this.main.mini_fig.draw(caller, this.main.uniforms);
   }
 }
@@ -250,6 +252,7 @@ export class main extends external {
   constructor() {
     super();
   }
+
   render_animation(caller) {
     super.render_animation(caller);
   }
