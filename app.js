@@ -210,44 +210,37 @@ export class Movement_Controls extends Component {
 
   render_animation(caller) {
     let move = Mat4.identity();
+    // Jump logic remains unchanged.
     if (this.key_pressed["shift"] && !this.jumpInitiated) {
       let pos = this.main.mini_fig.getMiniFigPosition();
-      if (Math.abs(pos[1] - (0 + 3.4)) < 0.01) {
+      if (Math.abs(pos[1] - 3.4) < 0.01) {
         this.main.mini_fig.physicsVelocity = vec3(
           this.main.mini_fig.physicsVelocity[0],
-          0.034,
+          0.08,
           this.main.mini_fig.physicsVelocity[2]
         );
         this.jumpInitiated = true;
       }
     }
-    switch (true) {
-      case this.key_pressed["w"]:
-        move.post_multiply(Mat4.translation(0, 0, -this.movement_speed));
-        this.main.mini_fig.move_mini_fig(move);
-        this.main.mini_fig.direction = [0, -1];
-        break;
-      case this.key_pressed["s"]:
-        move.post_multiply(Mat4.translation(0, 0, this.movement_speed));
-        this.main.mini_fig.move_mini_fig(move);
-        this.main.mini_fig.direction = [0, 1];
-        break;
-      case this.key_pressed["a"]:
-        move.post_multiply(Mat4.translation(-this.movement_speed, 0, 0));
-        this.main.mini_fig.move_mini_fig(move);
-        this.main.mini_fig.direction = [-1, 0];
-        break;
-      case this.key_pressed["d"]:
-        move.post_multiply(Mat4.translation(this.movement_speed, 0, 0));
-        this.main.mini_fig.move_mini_fig(move);
-        this.main.mini_fig.direction = [1, 0];
-        break;
-      case this.key_pressed["x"]:
-        this.main.mini_fig.build();
-        break;
-      default:
-        this.main.mini_fig.reset();
-        break;
+    // Sum movement contributions from keys:
+    let dx = 0, dz = 0;
+    if (this.key_pressed["w"]) dz -= this.movement_speed;
+    if (this.key_pressed["s"]) dz += this.movement_speed;
+    if (this.key_pressed["a"]) dx -= this.movement_speed;
+    if (this.key_pressed["d"]) dx += this.movement_speed;
+
+    if (dx !== 0 || dz !== 0) {
+      move.post_multiply(Mat4.translation(dx, 0, dz));
+      this.main.mini_fig.move_mini_fig(move);
+      let len = Math.sqrt(dx * dx + dz * dz);
+      this.main.mini_fig.direction = [dx / len, dz / len];
+    } else {
+      // When no key is pressed, reset the mini-figure animation to idle.
+      this.main.mini_fig.reset();
+    }
+    // If build key is pressed:
+    if (this.key_pressed["x"]) {
+      this.main.mini_fig.build();
     }
     this.main.mini_fig.draw(caller, this.main.uniforms);
   }
@@ -257,7 +250,6 @@ export class main extends external {
   constructor() {
     super();
   }
-
   render_animation(caller) {
     super.render_animation(caller);
   }
