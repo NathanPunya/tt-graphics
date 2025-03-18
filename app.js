@@ -289,7 +289,7 @@ export class Movement_Controls extends Component {
       if (Math.abs(pos[1] - 3.4) < 0.01) {
         this.main.mini_fig.physicsVelocity = vec3(
           this.main.mini_fig.physicsVelocity[0],
-          0.08,
+          0.034,
           this.main.mini_fig.physicsVelocity[2]
         );
         this.jumpInitiated = true;
